@@ -28,8 +28,20 @@
 
 <section id="workouts" class="section">
   <h2>Treinos</h2>
-  <textarea id="workoutNotes" placeholder="Registre seu treino aqui..."></textarea>
-  <button onclick="saveWorkout()">Salvar Treino</button>
+
+  <select id="daySelector">
+    <option value="dia1">Dia 1 – Peito + Tríceps</option>
+    <option value="dia2">Dia 2 – Costas + Bíceps</option>
+    <option value="dia3">Dia 3 – Posterior</option>
+    <option value="dia4">Dia 4 – Ombro</option>
+    <option value="dia5">Dia 5 – Perna</option>
+  </select>
+
+  <div id="exerciseList"></div>
+
+  <button onclick="finishWorkout()">Finalizar Treino</button>
+
+  <h3>Histórico</h3>
   <ul id="workoutHistory"></ul>
 </section>
 

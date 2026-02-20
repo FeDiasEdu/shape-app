@@ -1,71 +1,78 @@
-let weights = JSON.parse(localStorage.getItem("weights")) || [];
-let workouts = JSON.parse(localStorage.getItem("workouts")) || [];
-
-function showSection(id) {
-  document.querySelectorAll(".section").forEach(sec => {
-    sec.classList.remove("active");
-  });
-  document.getElementById(id).classList.add("active");
-}
-
-document.getElementById("themeToggle").onclick = () => {
-  document.body.classList.toggle("dark");
+const workoutsData = {
+  dia1: [
+    "Supino Inclinado Halteres – 26kg",
+    "Chest Press – 40kg",
+    "Crossover Baixo → Alto – 7kg",
+    "Crucifixo Máquina – 60kg",
+    "Tríceps Corda – 17,5–21kg",
+    "Tríceps Testa – 25kg"
+  ],
+  dia2: [
+    "Puxada Neutra – 60kg",
+    "Remada Cabo – 24kg",
+    "Pulldown – 26kg",
+    "Rosca Scott – 25kg",
+    "Rosca Martelo – 12kg"
+  ],
+  dia3: [
+    "Stiff",
+    "Flexora Deitada",
+    "Flexora Unilateral – 10kg",
+    "Glute Bridge"
+  ],
+  dia4: [
+    "Elevação Lateral – 12kg",
+    "Elevação Cabo",
+    "Crucifixo Invertido – 5kg",
+    "Desenvolvimento Halteres"
+  ],
+  dia5: [
+    "Agachamento Smith – 80kg",
+    "Leg Press – 200kg",
+    "Extensora – 57kg",
+    "Panturrilha – 190kg"
+  ]
 };
 
-function saveWorkout() {
-  const note = document.getElementById("workoutNotes").value;
-  if (!note) return;
-  workouts.push({ date: new Date().toLocaleDateString(), note });
-  localStorage.setItem("workouts", JSON.stringify(workouts));
-  document.getElementById("workoutNotes").value = "";
-  renderWorkouts();
+let workoutHistory = JSON.parse(localStorage.getItem("history")) || [];
+
+const selector = document.getElementById("daySelector");
+const exerciseList = document.getElementById("exerciseList");
+
+function renderExercises() {
+  const day = selector.value;
+  exerciseList.innerHTML = "";
+
+  workoutsData[day].forEach(ex => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <label>
+        <input type="checkbox"> ${ex}
+      </label>
+    `;
+    exerciseList.appendChild(div);
+  });
 }
 
-function renderWorkouts() {
+selector.addEventListener("change", renderExercises);
+
+function finishWorkout() {
+  const date = new Date().toLocaleDateString();
+  workoutHistory.push(`${date} – ${selector.options[selector.selectedIndex].text}`);
+  localStorage.setItem("history", JSON.stringify(workoutHistory));
+  renderHistory();
+  alert("Treino finalizado!");
+}
+
+function renderHistory() {
   const list = document.getElementById("workoutHistory");
   list.innerHTML = "";
-  workouts.forEach(w => {
+  workoutHistory.forEach(item => {
     const li = document.createElement("li");
-    li.textContent = `${w.date} - ${w.note}`;
+    li.textContent = item;
     list.appendChild(li);
   });
 }
 
-function addWeight() {
-  const value = document.getElementById("weightInput").value;
-  if (!value) return;
-  weights.push({ date: new Date().toLocaleDateString(), value: Number(value) });
-  localStorage.setItem("weights", JSON.stringify(weights));
-  document.getElementById("weightInput").value = "";
-  renderChart();
-  document.getElementById("currentWeight").textContent = value;
-}
-
-function renderChart() {
-  const ctx = document.getElementById("weightChart").getContext("2d");
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: weights.map(w => w.date),
-      datasets: [{
-        label: "Peso (kg)",
-        data: weights.map(w => w.value),
-        borderColor: "blue",
-        fill: false
-      }]
-    }
-  });
-}
-
-document.getElementById("photoUpload").addEventListener("change", function() {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = document.createElement("img");
-    img.src = e.target.result;
-    document.getElementById("photoGallery").appendChild(img);
-  };
-  reader.readAsDataURL(this.files[0]);
-});
-
-renderWorkouts();
-renderChart();
+renderExercises();
+renderHistory();
