@@ -1,46 +1,54 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #111, #1e1e1e);
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
   color: white;
 }
 
-body.dark {
-  background: linear-gradient(135deg, #000, #111);
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 header {
   display: flex;
   justify-content: space-between;
   padding: 20px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 nav {
   display: flex;
   justify-content: space-around;
-  padding: 10px;
-  background: rgba(255,255,255,0.05);
+  padding: 12px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
 }
 
 nav button {
-  padding: 10px 15px;
-  background: transparent;
-  border: 1px solid #00ff88;
-  color: #00ff88;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
   cursor: pointer;
+  transition: 0.3s;
 }
 
 nav button:hover {
   background: #00ff88;
   color: black;
+  transform: translateY(-2px);
 }
 
 .section {
   display: none;
-  padding: 20px;
+  padding: 25px;
 }
 
 .section.active {
@@ -48,35 +56,51 @@ nav button:hover {
 }
 
 .card {
-  background: rgba(255,255,255,0.05);
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  backdrop-filter: blur(6px);
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  padding: 18px;
+  border-radius: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
 }
 
 input {
-  padding: 6px;
+  padding: 8px;
   margin: 4px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
 }
 
 button.primary {
-  padding: 10px 15px;
+  padding: 12px 20px;
   background: #00ff88;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 12px;
   font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button.primary:hover {
+  transform: scale(1.05);
 }
 
 .serie {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 #photoGallery img {
-  width: 120px;
-  margin: 5px;
-  border-radius: 8px;
+  width: 130px;
+  margin: 8px;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+#photoGallery img:hover {
+  transform: scale(1.05);
 }
