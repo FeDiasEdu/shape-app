@@ -1,93 +1,168 @@
-alert("JS carregado");
-
 document.addEventListener("DOMContentLoaded", function () {
 
   const workoutsData = {
-    dia1: [
-      "Supino Inclinado Halteres – 26kg",
-      "Chest Press – 40kg",
-      "Crossover Baixo → Alto – 7kg",
-      "Crucifixo Máquina – 60kg",
-      "Tríceps Corda – 17,5–21kg",
-      "Tríceps Testa – 25kg"
+    "Dia 1 – Peito + Tríceps": [
+      "Supino Inclinado Halteres",
+      "Chest Press",
+      "Crossover Baixo → Alto",
+      "Crucifixo Máquina",
+      "Tríceps Corda",
+      "Tríceps Testa"
     ],
-    dia2: [
-      "Puxada Neutra – 60kg",
-      "Remada Cabo – 24kg",
-      "Pulldown – 26kg",
-      "Rosca Scott – 25kg",
-      "Rosca Martelo – 12kg"
+    "Dia 2 – Costas + Bíceps": [
+      "Puxada Neutra",
+      "Remada Cabo",
+      "Pulldown",
+      "Rosca Scott",
+      "Rosca Martelo"
     ],
-    dia3: [
+    "Dia 3 – Posterior": [
       "Stiff",
       "Flexora Deitada",
-      "Flexora Unilateral – 10kg",
+      "Flexora Unilateral",
       "Glute Bridge"
     ],
-    dia4: [
-      "Elevação Lateral – 12kg",
+    "Dia 4 – Ombro": [
+      "Elevação Lateral",
       "Elevação Cabo",
-      "Crucifixo Invertido – 5kg",
+      "Crucifixo Invertido",
       "Desenvolvimento Halteres"
     ],
-    dia5: [
-      "Agachamento Smith – 80kg",
-      "Leg Press – 200kg",
-      "Extensora – 57kg",
-      "Panturrilha – 190kg"
+    "Dia 5 – Perna": [
+      "Agachamento Smith",
+      "Leg Press",
+      "Extensora",
+      "Panturrilha"
     ]
   };
-
-  let workoutHistory = JSON.parse(localStorage.getItem("history")) || [];
 
   const selector = document.getElementById("daySelector");
   const exerciseList = document.getElementById("exerciseList");
   const historyList = document.getElementById("workoutHistory");
 
-  function renderExercises() {
-    const day = selector.value;
-    exerciseList.innerHTML = "";
+  let history = JSON.parse(localStorage.getItem("history")) || [];
+  let workoutData = JSON.parse(localStorage.getItem("workoutData")) || {};
+  let weightData = JSON.parse(localStorage.getItem("weightData")) || [];
 
-    workoutsData[day].forEach(ex => {
+  Object.keys(workoutsData).forEach(day => {
+    const option = document.createElement("option");
+    option.value = day;
+    option.textContent = day;
+    selector.appendChild(option);
+  });
+
+  function renderExercises() {
+    exerciseList.innerHTML = "";
+    workoutsData[selector.value].forEach(ex => {
       const div = document.createElement("div");
+      div.className = "card";
       div.innerHTML = `
-        <label>
-          <input type="checkbox"> ${ex}
-        </label>
+        <h3>${ex}</h3>
+        <div class="seriesContainer"></div>
+        <button onclick="addSerie(this)">+ Série</button>
       `;
       exerciseList.appendChild(div);
     });
   }
 
+  window.addSerie = function(button) {
+    const container = button.parentElement.querySelector(".seriesContainer");
+    const div = document.createElement("div");
+    div.className = "serie";
+    div.innerHTML = `
+      <input type="number" placeholder="Peso">
+      <input type="number" placeholder="Reps">
+      <button onclick="this.parentElement.remove()">X</button>
+    `;
+    container.appendChild(div);
+  };
+
+  window.finishWorkout = function () {
+    const date = new Date().toISOString().split("T")[0];
+    const day = selector.value;
+
+    let totalVolume = 0;
+    workoutData[date] = workoutData[date] || {};
+    workoutData[date][day] = {};
+
+    document.querySelectorAll(".card").forEach(card => {
+      const exName = card.querySelector("h3")?.textContent;
+      if (!exName) return;
+
+      const series = [];
+      card.querySelectorAll(".serie").forEach(s => {
+        const peso = Number(s.children[0].value);
+        const reps = Number(s.children[1].value);
+        if (peso && reps) {
+          series.push({ peso, reps });
+          totalVolume += peso * reps;
+        }
+      });
+
+      if (series.length > 0) {
+        const pr = Math.max(...series.map(s => s.peso));
+        workoutData[date][day][exName] = { series, pr };
+      }
+    });
+
+    history.push(`${date} – ${day}`);
+    localStorage.setItem("history", JSON.stringify(history));
+    localStorage.setItem("workoutData", JSON.stringify(workoutData));
+
+    document.getElementById("lastVolume").textContent = totalVolume + " kg";
+    renderHistory();
+    alert("Treino salvo com sucesso 🚀");
+  };
+
   function renderHistory() {
     historyList.innerHTML = "";
-    workoutHistory.forEach(item => {
+    history.forEach(h => {
       const li = document.createElement("li");
-      li.textContent = item;
+      li.textContent = h;
       historyList.appendChild(li);
     });
   }
 
-  window.finishWorkout = function () {
-    const date = new Date().toLocaleDateString();
-    const dayName = selector.options[selector.selectedIndex].text;
-    workoutHistory.push(`${date} – ${dayName}`);
-    localStorage.setItem("history", JSON.stringify(workoutHistory));
-    renderHistory();
-    alert("Treino finalizado!");
-  };
-
-  window.showSection = function (id) {
+  window.showSection = function(id) {
     document.querySelectorAll(".section").forEach(sec => {
       sec.classList.remove("active");
     });
     document.getElementById(id).classList.add("active");
   };
 
+  window.addWeight = function() {
+    const weight = Number(document.getElementById("weightInput").value);
+    if (!weight) return;
+    const date = new Date().toLocaleDateString();
+    weightData.push({ date, weight });
+    localStorage.setItem("weightData", JSON.stringify(weightData));
+    document.getElementById("currentWeight").textContent = weight;
+    renderChart();
+  };
+
+  function renderChart() {
+    const ctx = document.getElementById("weightChart");
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: weightData.map(w => w.date),
+        datasets: [{
+          label: "Peso",
+          data: weightData.map(w => w.weight),
+          borderColor: "#00ff88",
+          fill: false
+        }]
+      }
+    });
+  }
+
+  document.getElementById("themeToggle").addEventListener("click", function () {
+    document.body.classList.toggle("dark");
+  });
+
   selector.addEventListener("change", renderExercises);
 
   renderExercises();
   renderHistory();
+  renderChart();
 });
-
-
