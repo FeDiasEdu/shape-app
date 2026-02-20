@@ -1,3 +1,5 @@
+alert("JS carregado");
+
 document.addEventListener("DOMContentLoaded", function () {
 
   const workoutsData = {
@@ -80,3 +82,4 @@ document.addEventListener("DOMContentLoaded", function () {
   renderExercises();
   renderHistory();
 });
+
