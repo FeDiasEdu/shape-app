@@ -77,9 +77,17 @@ document.addEventListener("DOMContentLoaded", function () {
     alert("Treino finalizado!");
   };
 
+  window.showSection = function (id) {
+    document.querySelectorAll(".section").forEach(sec => {
+      sec.classList.remove("active");
+    });
+    document.getElementById(id).classList.add("active");
+  };
+
   selector.addEventListener("change", renderExercises);
 
   renderExercises();
   renderHistory();
 });
+
 
