@@ -85,9 +85,8 @@ document.addEventListener("DOMContentLoaded", function () {
     workoutData[date] = workoutData[date] || {};
     workoutData[date][day] = {};
 
-    document.querySelectorAll(".card").forEach(card => {
-      const exName = card.querySelector("h3")?.textContent;
-      if (!exName) return;
+    document.querySelectorAll("#exerciseList .card").forEach(card => {
+      const exName = card.querySelector("h3").textContent;
 
       const series = [];
       card.querySelectorAll(".serie").forEach(s => {
@@ -105,6 +104,35 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
+    const lastVolume = getLastWorkoutVolume(day, date);
+    let diffText = "";
+  
+    if (lastVolume !== null) {
+      const diff = ((totalVolume - lastVolume) / lastVolume) * 100;
+      const arrow = diff >= 0 ? "↑" : "↓";
+      const color = diff >= 0 ? "lime" : "red";
+      diffText = `${arrow} ${diff.toFixed(1)}%`;
+      document.getElementById("lastVolume").innerHTML =
+        `<span style="color:${color}">${totalVolume} kg (${diffText})</span>`;
+    } else {
+      document.getElementById("lastVolume").textContent =
+        totalVolume + " kg";
+    }
+  
+    history.push(`${date} – ${day}`);
+    localStorage.setItem("history", JSON.stringify(history));
+    localStorage.setItem("workoutData", JSON.stringify(workoutData));
+  
+    renderHistory();
+    alert("Treino salvo 🚀");
+  };
+
+      if (series.length > 0) {
+        const pr = Math.max(...series.map(s => s.peso));
+        workoutData[date][day][exName] = { series, pr };
+      }
+    });
+
     history.push(`${date} – ${day}`);
     localStorage.setItem("history", JSON.stringify(history));
     localStorage.setItem("workoutData", JSON.stringify(workoutData));
@@ -113,6 +141,23 @@ document.addEventListener("DOMContentLoaded", function () {
     renderHistory();
     alert("Treino salvo com sucesso 🚀");
   };
+
+  function getLastWorkoutVolume(day, currentDate) {
+    const dates = Object.keys(workoutData).sort().reverse();
+
+    for (let d of dates) {
+      if (d < currentDate && workoutData[d][day]) {
+        let volume = 0;
+        Object.values(workoutData[d][day]).forEach(ex => {
+          ex.series.forEach(s => {
+            volume += s.peso * s.reps;
+          });
+        });
+        return volume;
+      }
+    }
+    return null;
+  }
 
   function renderHistory() {
     historyList.innerHTML = "";
@@ -166,3 +211,4 @@ document.addEventListener("DOMContentLoaded", function () {
   renderHistory();
   renderChart();
 });
+
