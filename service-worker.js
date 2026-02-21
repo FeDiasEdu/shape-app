@@ -1,12 +1,6 @@
-// ==========================
-// VERSIONAMENTO
-// ==========================
-const APP_VERSION = "v1.9";
+const APP_VERSION = "v2.0";
 const CACHE_NAME = `fitness-app-${APP_VERSION}`;
 
-// ==========================
-// CACHE
-// ==========================
 const urlsToCache = [
   "./",
   "./index.html",
@@ -18,19 +12,14 @@ const urlsToCache = [
   "https://cdn.jsdelivr.net/npm/chart.js"
 ];
 
-// ==========================
-// INSTALL
-// ==========================
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
+  self.skipWaiting();
 });
 
-// ==========================
-// ACTIVATE
-// ==========================
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -43,42 +32,18 @@ self.addEventListener("activate", event => {
       )
     )
   );
-  return self.clients.claim();
+  self.clients.claim();
 });
 
-// ==========================
-// FETCH (Network First)
-// ==========================
 self.addEventListener("fetch", event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
-        }
-
         const clone = response.clone();
         caches.open(CACHE_NAME)
           .then(cache => cache.put(event.request, clone));
-
         return response;
       })
-      .catch(() => {
-        return caches.match(event.request).then(response => {
-          return response || new Response("Offline", {
-            status: 503,
-            statusText: "Offline"
-          });
-        });
-      })
+      .catch(() => caches.match(event.request))
   );
-});
-
-// ==========================
-// SKIP WAITING
-// ==========================
-self.addEventListener("message", event => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
-    self.skipWaiting();
-  }
 });
