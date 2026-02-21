@@ -208,4 +208,53 @@ document.addEventListener("DOMContentLoaded", function () {
   renderHistory();
   renderChart();
 
+function updateDashboard() {
+
+  const now = new Date();
+  const currentWeek = getWeekNumber(now);
+
+  let weeklyVolume = 0;
+  let weeklyWorkouts = 0;
+  let bestPR = 0;
+
+  Object.keys(workoutData).forEach(date => {
+    const d = new Date(date);
+    const week = getWeekNumber(d);
+
+    if (week === currentWeek) {
+      weeklyWorkouts++;
+
+      Object.values(workoutData[date]).forEach(day => {
+        Object.values(day).forEach(ex => {
+
+          ex.series.forEach(s => {
+            weeklyVolume += s.peso * s.reps;
+          });
+
+          if (ex.pr > bestPR) {
+            bestPR = ex.pr;
+          }
+
+        });
+      });
+    }
+  });
+
+  document.getElementById("weeklyVolume").textContent =
+    weeklyVolume ? weeklyVolume + " kg" : "-";
+
+  document.getElementById("weeklyWorkouts").textContent =
+    weeklyWorkouts || "-";
+
+  document.getElementById("bestPR").textContent =
+    bestPR ? bestPR + " kg" : "-";
+}
+
+function getWeekNumber(date) {
+  const firstJan = new Date(date.getFullYear(), 0, 1);
+  const days = Math.floor((date - firstJan) / (24 * 60 * 60 * 1000));
+  return Math.ceil((date.getDay() + 1 + days) / 7);
+}
+
 });
+
