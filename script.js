@@ -387,6 +387,72 @@ function formatDate(dateStr) {
 }
 
 // ==========================
+// NAVBAR
+// ==========================
+
+const navItems = document.querySelectorAll(".nav-item");
+const sections = document.querySelectorAll(".section");
+
+navItems.forEach(btn => {
+  btn.addEventListener("click", function () {
+
+    sections.forEach(sec => sec.classList.remove("active"));
+    navItems.forEach(n => n.classList.remove("active"));
+
+    const target = document.getElementById(this.dataset.section);
+    if (target) target.classList.add("active");
+
+    this.classList.add("active");
+  });
+}
+
+// ==========================
+// PWA UPDATE SYSTEM
+// ==========================
+
+if ("serviceWorker" in navigator) {
+
+  navigator.serviceWorker.register("service-worker.js")
+    .then(registration => {
+
+      if (registration.waiting) {
+        showUpdateToast(registration.waiting);
+      }
+
+      registration.addEventListener("updatefound", () => {
+
+        const newWorker = registration.installing;
+
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            showUpdateToast(newWorker);
+          }
+        });
+
+      });
+    });
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
+  });
+}
+
+function showUpdateToast(worker) {
+
+  const toast = document.getElementById("updateToast");
+  const btn = document.getElementById("updateBtn");
+
+  if (!toast || !btn) return;
+
+  toast.classList.add("show");
+
+  btn.onclick = () => {
+    worker.postMessage({ type: "SKIP_WAITING" });
+    toast.classList.remove("show");
+  };
+}
+                 
+// ==========================
 // INIT
 // ==========================
 
@@ -394,4 +460,5 @@ renderWeightUI();
 renderHealthUI();
 
 });
+
 
