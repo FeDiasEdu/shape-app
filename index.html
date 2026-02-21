@@ -103,6 +103,95 @@
           Salvar Perfil
         </button>
       </div>
+    
+      <!-- RESULTADOS -->
+      <div class="card">
+        <h3>Indicadores</h3>
+    
+        <p><strong>IMC:</strong> <span id="bmiResult">-</span></p>
+        <p><strong>Classificação:</strong> <span id="bmiLabel">-</span></p>
+        <p><strong>TMB:</strong> <span id="tmbResult">-</span> kcal</p>
+        <p><strong>TDEE:</strong> <span id="tdeeResult">-</span> kcal</p>
+        <p><strong>Água diária:</strong> <span id="waterResult">-</span> ml</p>
+      </div>
+    
+      <!-- MACROS -->
+      <div class="card">
+        <h3>Macros Sugeridos</h3>
+    
+        <p><strong>Calorias:</strong> <span id="caloriesResult">-</span> kcal</p>
+        <p><strong>Proteína:</strong> <span id="proteinResult">-</span> g</p>
+        <p><strong>Carboidratos:</strong> <span id="carbsResult">-</span> g</p>
+        <p><strong>Gorduras:</strong> <span id="fatsResult">-</span> g</p>
+      </div>
+    
+      <!-- REGISTRO ALIMENTAR (HOJE) -->
+      <div class="card">
+        <h3>Registro Alimentar (Hoje)</h3>
+    
+        <p><strong>Data:</strong> <span id="dietToday">-</span></p>
+    
+        <div class="card" style="margin-top:12px;">
+          <h4>Totais Consumidos</h4>
+          <p><strong>Calorias:</strong> <span id="dietTotalCalories">0</span> / <span id="dietTargetCalories">-</span> kcal</p>
+          <p><strong>Proteína:</strong> <span id="dietTotalProtein">0</span> / <span id="dietTargetProtein">-</span> g</p>
+          <p><strong>Carboidratos:</strong> <span id="dietTotalCarbs">0</span> / <span id="dietTargetCarbs">-</span> g</p>
+          <p><strong>Gorduras:</strong> <span id="dietTotalFats">0</span> / <span id="dietTargetFats">-</span> g</p>
+          <p><strong>Água:</strong> <span id="dietWaterConsumed">0</span> / <span id="dietWaterTarget">-</span> ml</p>
+        </div>
+    
+        <h4 style="margin-top:12px;">Adicionar Alimento</h4>
+    
+        <input type="text" id="foodNameInput" placeholder="Nome do alimento (ex: arroz, frango)">
+        <input type="text" id="foodQtyInput" placeholder="Quantidade (ex: 150g, 2 fatias)">
+        <input type="number" id="foodCaloriesInput" placeholder="Calorias (kcal)">
+        <input type="number" id="foodProteinInput" placeholder="Proteína (g)">
+        <input type="number" id="foodCarbsInput" placeholder="Carboidratos (g)">
+        <input type="number" id="foodFatsInput" placeholder="Gorduras (g)">
+    
+        <button id="addFoodBtn" class="primary">Adicionar</button>
+    
+        <h4 style="margin-top:14px;">Itens do dia</h4>
+        <div id="dietList"></div>
+    
+        <h4 style="margin-top:14px;">Água</h4>
+        <input type="number" id="waterAddInput" placeholder="Adicionar água (ml)">
+        <button id="addWaterBtn" class="primary">Adicionar Água</button>
+    
+      </div>
+    
+    </section>
+    
+      <!-- PERFIL -->
+      <div class="card">
+        <h3>Perfil</h3>
+    
+        <input type="number" id="heightInput" placeholder="Altura (cm)">
+        <input type="number" id="ageInput" placeholder="Idade">
+    
+        <select id="sexInput">
+          <option value="male">Masculino</option>
+          <option value="female">Feminino</option>
+        </select>
+    
+        <select id="activityInput">
+          <option value="1.2">Sedentário</option>
+          <option value="1.375">Leve</option>
+          <option value="1.55" selected>Moderado</option>
+          <option value="1.725">Intenso</option>
+          <option value="1.9">Muito Intenso</option>
+        </select>
+    
+        <select id="goalInput">
+          <option value="cutting">Cutting</option>
+          <option value="maintenance" selected>Manutenção</option>
+          <option value="bulking">Bulking</option>
+        </select>
+    
+        <button id="saveProfileBtn" class="primary">
+          Salvar Perfil
+        </button>
+      </div>
   
       <!-- RESULTADOS -->
       <div class="card">
@@ -240,4 +329,5 @@
 
 </body>
 </html>
+
 
