@@ -4,16 +4,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function loadState() {
     const saved = localStorage.getItem("fitnessAppState");
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (!parsed.photos) parsed.photos = [];
+      if (!parsed.weights) parsed.weights = [];
+      return parsed;
+    }
 
     return {
+      version: 2,
       library: {
-        exercises: ["Supino Reto","Agachamento"],
+        exercises: ["Supino Reto","Supino Inclinado","Agachamento"],
         techniques: ["Drop Set","Rest Pause"]
       },
       workouts: {},
       weights: [],
-      photos: []
+      photos: [],
+      settings: { theme: "dark" }
     };
   }
 
@@ -21,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.setItem("fitnessAppState", JSON.stringify(appState));
   }
 
-  // ================= NAVIGATION =================
+  // ================= NAV =================
   const navItems = document.querySelectorAll(".nav-item");
   const sections = document.querySelectorAll(".section");
 
@@ -58,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
       appState.workouts[selectedDay] = [];
     }
 
-    .workouts[selectedDay].forEach((item, index) => {
+    appState.workouts[selectedDay].forEach((item, index) => {
 
       const div = document.createElement("div");
       div.className = "exercise-item";
@@ -77,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     container.querySelectorAll("button").forEach(btn => {
       btn.onclick = function () {
-        .workouts[selectedDay].splice(this.dataset.index, 1);
+        appState.workouts[selectedDay].splice(this.dataset.index, 1);
         saveState();
         renderExercises();
       };
@@ -96,10 +103,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const value = parseFloat(weightInput.value);
     if (!value) return;
 
-    .weights.push({
-      date: new Date().toLocaleDateString(),
-      value
-    });
+    const today = new Date().toLocaleDateString();
+
+    const existing = appState.weights.find(w => w.date === today);
+
+    if (existing) {
+      existing.value = value;
+    } else {
+      appState.weights.push({
+        date: today,
+        value
+      });
+    }
 
     saveState();
     weightInput.value = "";
@@ -108,9 +123,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateWeight() {
 
-    if (.weights.length > 0) {
+    if (appState.weights.length > 0) {
       currentWeightEl.textContent =
-        .weights[.weights.length - 1].value;
+        appState.weights[appState.weights.length - 1].value;
     }
 
     const ctx = document.getElementById("weightChart");
@@ -120,9 +135,9 @@ document.addEventListener("DOMContentLoaded", function () {
     chart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: .weights.map(w => w.date),
+        labels: appState.weights.map(w => w.date),
         datasets: [{
-          data: .weights.map(w => w.value),
+          data: appState.weights.map(w => w.value),
           borderColor: "#00ff88"
         }]
       },
@@ -136,6 +151,44 @@ document.addEventListener("DOMContentLoaded", function () {
   const photoUpload = document.getElementById("photoUpload");
   const photoGallery = document.getElementById("photoGallery");
 
+  function renderPhotos() {
+
+    photoGallery.innerHTML = "";
+
+    appState.photos.forEach((src, index) => {
+
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+      wrapper.style.marginBottom = "10px";
+
+      const img = document.createElement("img");
+      img.src = src;
+      img.style.width = "100%";
+      img.style.borderRadius = "12px";
+
+      const btn = document.createElement("button");
+      btn.textContent = "X";
+      btn.style.position = "absolute";
+      btn.style.top = "8px";
+      btn.style.right = "8px";
+      btn.style.background = "red";
+      btn.style.color = "white";
+      btn.style.borderRadius = "50%";
+      btn.style.width = "28px";
+      btn.style.height = "28px";
+
+      btn.onclick = () => {
+        appState.photos.splice(index, 1);
+        saveState();
+        renderPhotos();
+      };
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(btn);
+      photoGallery.appendChild(wrapper);
+    });
+  }
+
   photoUpload.addEventListener("change", function () {
 
     const file = this.files[0];
@@ -144,34 +197,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const reader = new FileReader();
 
     reader.onload = function (e) {
-
-      const img = document.createElement("img");
-      img.src = e.target.result;
-      img.style.width = "100%";
-      img.style.borderRadius = "12px";
-      img.style.marginBottom = "10px";
-
-      photoGallery.appendChild(img);
-
       appState.photos.push(e.target.result);
       saveState();
+      renderPhotos();
     };
 
     reader.readAsDataURL(file);
   });
 
-  if (!appState.photos) appState.photos = [];
-
-  appState.photos.forEach(src => {
-    const img = document.createElement("img");
-    img.src = src;
-    img.style.width = "100%";
-    img.style.borderRadius = "12px";
-    img.style.marginBottom = "10px";
-    photoGallery.appendChild(img);
-  });
+  renderPhotos();
 
   renderExercises();
 
 });
-
