@@ -1,3 +1,11 @@
+window.showSection = function (id) {
+  document.querySelectorAll(".section").forEach(sec => {
+    sec.classList.remove("active");
+  });
+  const el = document.getElementById(id);
+  if (el) el.classList.add("active");
+};
+
 document.addEventListener("DOMContentLoaded", function () {
 
   const workoutsData = {
@@ -325,6 +333,7 @@ window.comparePhotos = function () {
 renderPhotos();
 
 });
+
 
 
 
