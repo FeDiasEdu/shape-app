@@ -49,7 +49,6 @@
   height: 4px;
   background: #00ff88;
   border-radius: 4px 4px 0 0;
-  transition: transform 0.35s cubic-bezier(.68,-0.55,.27,1.55),
-              width 0.35s ease;
-  z-index: 1;
+  transition: all 0.35s cubic-bezier(.68,-0.55,.27,1.55);
 }
+
