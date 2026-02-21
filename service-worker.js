@@ -1,7 +1,7 @@
 // ==========================
 // VERSIONAMENTO
 // ==========================
-const APP_VERSION = "v3"; // 🔥 Sempre altere quando atualizar o app
+const APP_VERSION = "v4"; // 🔥 Sempre altere quando atualizar o app
 const CACHE_NAME = `fitness-app-${APP_VERSION}`;
 
 // ==========================
@@ -15,6 +15,17 @@ const urlsToCache = [
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+
+  // NAV ICONS (LIGHT/DARK)
+  "./icons/nav-dashboard-light.png",
+  "./icons/nav-dashboard-dark.png",
+  "./icons/nav-workout-light.png",
+  "./icons/nav-workout-dark.png",
+  "./icons/nav-weight-light.png",
+  "./icons/nav-weight-dark.png",
+  "./icons/nav-photos-light.png",
+  "./icons/nav-photos-dark.png",
+
   "https://cdn.jsdelivr.net/npm/chart.js"
 ];
 
