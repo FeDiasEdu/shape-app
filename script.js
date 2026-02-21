@@ -101,29 +101,90 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ==========================
-  // ADD EXERCISE
-  // ==========================
-  document.getElementById("addExerciseBtn").onclick = function () {
+// ADD EXERCISE MODAL
+// ==========================
 
-    const exercise = prompt("Digite o nome do exercício ou escolha da biblioteca:");
-    if (!exercise) return;
+const modal = document.getElementById("exerciseModal");
+const exerciseListEl = document.getElementById("exerciseList");
+const techniqueListEl = document.getElementById("techniqueList");
+const exerciseSearch = document.getElementById("exerciseSearch");
+const techniqueSearch = document.getElementById("techniqueSearch");
 
-    const technique = prompt("Digite a técnica (opcional):");
+let selectedExercise = null;
+let selectedTechnique = null;
 
-    const day = daySelector.value;
+document.getElementById("addExerciseBtn").onclick = function () {
+  modal.classList.add("show");
+  renderExerciseOptions();
+  renderTechniqueOptions();
+};
 
-    if (!appState.workouts[day]) {
-      appState.workouts[day] = [];
-    }
+document.getElementById("cancelExercise").onclick = function () {
+  modal.classList.remove("show");
+};
 
-    appState.workouts[day].push({
-      exercise,
-      technique
+function renderExerciseOptions(filter = "") {
+  exerciseListEl.innerHTML = "";
+
+  appState.library.exercises
+    .filter(ex => ex.toLowerCase().includes(filter.toLowerCase()))
+    .forEach(ex => {
+      const div = document.createElement("div");
+      div.textContent = ex;
+      div.onclick = () => {
+        selectedExercise = ex;
+        renderExerciseOptions(filter);
+      };
+      exerciseListEl.appendChild(div);
     });
+}
 
-    saveState();
-    renderExercises();
-  };
+function renderTechniqueOptions(filter = "") {
+  techniqueListEl.innerHTML = "";
+
+  appState.library.techniques
+    .filter(t => t.toLowerCase().includes(filter.toLowerCase()))
+    .forEach(t => {
+      const div = document.createElement("div");
+      div.textContent = t;
+      div.onclick = () => {
+        selectedTechnique = t;
+        renderTechniqueOptions(filter);
+      };
+      techniqueListEl.appendChild(div);
+    });
+}
+
+exerciseSearch.addEventListener("input", e => {
+  renderExerciseOptions(e.target.value);
+});
+
+techniqueSearch.addEventListener("input", e => {
+  renderTechniqueOptions(e.target.value);
+});
+
+document.getElementById("saveExercise").onclick = function () {
+
+  if (!selectedExercise) return alert("Selecione um exercício.");
+
+  const day = daySelector.value;
+
+  if (!appState.workouts[day]) {
+    appState.workouts[day] = [];
+  }
+
+  appState.workouts[day].push({
+    exercise: selectedExercise,
+    technique: selectedTechnique
+  });
+
+  saveState();
+  renderExercises();
+
+  selectedExercise = null;
+  selectedTechnique = null;
+  modal.classList.remove("show");
+};
 
   // ==========================
   // NAVBAR
@@ -143,3 +204,4 @@ document.addEventListener("DOMContentLoaded", function () {
   renderExercises();
 
 });
+
