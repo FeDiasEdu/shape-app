@@ -1,11 +1,11 @@
 // ==========================
-// VERSION
+// VERSIONAMENTO
 // ==========================
 const APP_VERSION = "v4.0";
 const CACHE_NAME = `fitness-app-${APP_VERSION}`;
 
 // ==========================
-// CACHE FILES
+// ARQUIVOS PARA CACHE
 // ==========================
 const urlsToCache = [
   "./",
@@ -21,17 +21,13 @@ const urlsToCache = [
 // ==========================
 // INSTALL
 // ==========================
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME)
-          .then(cache => cache.put(event.request, clone));
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(urlsToCache);
+    })
   );
+  self.skipWaiting();
 });
 
 // ==========================
@@ -53,15 +49,16 @@ self.addEventListener("activate", event => {
 });
 
 // ==========================
-// FETCH - NETWORK FIRST
+// FETCH (Network First)
 // ==========================
 self.addEventListener("fetch", event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
         const clone = response.clone();
-        caches.open(CACHE_NAME)
-          .then(cache => cache.put(event.request, clone));
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, clone);
+        });
         return response;
       })
       .catch(() => caches.match(event.request))
