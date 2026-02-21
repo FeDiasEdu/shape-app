@@ -542,3 +542,34 @@ header {
   display: block;
 }
 
+/* NUTRITION TABS */
+
+.nutrition-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.nutrition-tab {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  text-align: center;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.nutrition-tab.active {
+  background: linear-gradient(135deg,#00ff88,#00cc6a);
+  color: black;
+  font-weight: bold;
+}
+
+.nutrition-content {
+  display: none;
+}
+
+.nutrition-content.active {
+  display: block;
+}
