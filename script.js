@@ -129,12 +129,19 @@ function renderExerciseOptions(filter = "") {
   appState.library.exercises
     .filter(ex => ex.toLowerCase().includes(filter.toLowerCase()))
     .forEach(ex => {
+
       const div = document.createElement("div");
       div.textContent = ex;
+
+      if (selectedExercise === ex) {
+        div.classList.add("selected");
+      }
+
       div.onclick = () => {
         selectedExercise = ex;
         renderExerciseOptions(filter);
       };
+
       exerciseListEl.appendChild(div);
     });
 }
@@ -145,12 +152,19 @@ function renderTechniqueOptions(filter = "") {
   appState.library.techniques
     .filter(t => t.toLowerCase().includes(filter.toLowerCase()))
     .forEach(t => {
+
       const div = document.createElement("div");
       div.textContent = t;
+
+      if (selectedTechnique === t) {
+        div.classList.add("selected");
+      }
+
       div.onclick = () => {
         selectedTechnique = t;
         renderTechniqueOptions(filter);
       };
+
       techniqueListEl.appendChild(div);
     });
 }
@@ -204,4 +218,5 @@ document.getElementById("saveExercise").onclick = function () {
   renderExercises();
 
 });
+
 
