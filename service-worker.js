@@ -1,7 +1,7 @@
 // ==========================
 // VERSIONAMENTO
 // ==========================
-const APP_VERSION = "v5"; // 🔥 Sempre altere quando atualizar o app
+const APP_VERSION = "v6";
 const CACHE_NAME = `fitness-app-${APP_VERSION}`;
 
 // ==========================
@@ -15,17 +15,6 @@ const urlsToCache = [
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-
-  // NAV ICONS (LIGHT/DARK)
-  "./icons/nav-dashboard-light.png",
-  "./icons/nav-dashboard-dark.png",
-  "./icons/nav-workout-light.png",
-  "./icons/nav-workout-dark.png",
-  "./icons/nav-weight-light.png",
-  "./icons/nav-weight-dark.png",
-  "./icons/nav-photos-light.png",
-  "./icons/nav-photos-dark.png",
-
   "https://cdn.jsdelivr.net/npm/chart.js"
 ];
 
@@ -33,15 +22,12 @@ const urlsToCache = [
 // INSTALL
 // ==========================
 self.addEventListener("install", event => {
-  console.log("Service Worker instalado");
 
-  self.skipWaiting(); // ativa imediatamente
+  self.skipWaiting(); // 🔥 ativa imediatamente
 
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+      .then(cache => cache.addAll(urlsToCache))
   );
 });
 
@@ -49,14 +35,12 @@ self.addEventListener("install", event => {
 // ACTIVATE
 // ==========================
 self.addEventListener("activate", event => {
-  console.log("Service Worker ativado");
 
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cache => {
           if (cache !== CACHE_NAME) {
-            console.log("Removendo cache antigo:", cache);
             return caches.delete(cache);
           }
         })
@@ -64,19 +48,26 @@ self.addEventListener("activate", event => {
     })
   );
 
-  return self.clients.claim(); // assume controle imediato
+  return self.clients.claim(); // 🔥 assume controle imediato
 });
 
 // ==========================
-// FETCH (CACHE FIRST)
+// FETCH (NETWORK FIRST)
 // ==========================
 self.addEventListener("fetch", event => {
 
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        return response || fetch(event.request);
+
+        const responseClone = response.clone();
+
+        caches.open(CACHE_NAME)
+          .then(cache => cache.put(event.request, responseClone));
+
+        return response;
       })
+      .catch(() => caches.match(event.request))
   );
 
 });
