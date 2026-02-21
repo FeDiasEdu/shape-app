@@ -104,100 +104,103 @@ document.addEventListener("DOMContentLoaded", function () {
 // ADD EXERCISE MODAL
 // ==========================
 
-const modal = document.getElementById("exerciseModal");
-const exerciseListEl = document.getElementById("exerciseList");
-const techniqueListEl = document.getElementById("techniqueList");
-const exerciseSearch = document.getElementById("exerciseSearch");
-const techniqueSearch = document.getElementById("techniqueSearch");
-
-let selectedExercise = null;
-let selectedTechnique = null;
-
-document.getElementById("addExerciseBtn").onclick = function () {
-  modal.classList.add("show");
-  renderExerciseOptions();
-  renderTechniqueOptions();
-};
-
-document.getElementById("cancelExercise").onclick = function () {
-  modal.classList.remove("show");
-};
+const selectedExerciseBox = document.getElementById("selectedExerciseBox");
+const selectedTechniqueBox = document.getElementById("selectedTechniqueBox");
 
 function renderExerciseOptions(filter = "") {
   exerciseListEl.innerHTML = "";
 
-  appState.library.exercises
-    .filter(ex => ex.toLowerCase().includes(filter.toLowerCase()))
-    .forEach(ex => {
+  let filtered = appState.library.exercises
+    .filter(ex => ex.toLowerCase().includes(filter.toLowerCase()));
 
-      const div = document.createElement("div");
-      div.textContent = ex;
+  // Se houver selecionado, coloca no topo
+  if (selectedExercise) {
+    filtered = [
+      selectedExercise,
+      ...filtered.filter(ex => ex !== selectedExercise)
+    ];
+  }
 
-      if (selectedExercise === ex) {
-        div.classList.add("selected");
-      }
+  filtered.forEach(ex => {
 
-      div.onclick = () => {
-        selectedExercise = ex;
-        renderExerciseOptions(filter);
-      };
+    const div = document.createElement("div");
+    div.textContent = ex;
 
-      exerciseListEl.appendChild(div);
-    });
+    if (selectedExercise === ex) {
+      div.classList.add("selected");
+    }
+
+    div.onclick = () => {
+      selectedExercise = ex;
+      exerciseSearch.value = "";
+      updateSelectedExerciseBox();
+      renderExerciseOptions();
+    };
+
+    exerciseListEl.appendChild(div);
+  });
 }
 
 function renderTechniqueOptions(filter = "") {
   techniqueListEl.innerHTML = "";
 
-  appState.library.techniques
-    .filter(t => t.toLowerCase().includes(filter.toLowerCase()))
-    .forEach(t => {
+  let filtered = appState.library.techniques
+    .filter(t => t.toLowerCase().includes(filter.toLowerCase()));
 
-      const div = document.createElement("div");
-      div.textContent = t;
-
-      if (selectedTechnique === t) {
-        div.classList.add("selected");
-      }
-
-      div.onclick = () => {
-        selectedTechnique = t;
-        renderTechniqueOptions(filter);
-      };
-
-      techniqueListEl.appendChild(div);
-    });
-}
-
-exerciseSearch.addEventListener("input", e => {
-  renderExerciseOptions(e.target.value);
-});
-
-techniqueSearch.addEventListener("input", e => {
-  renderTechniqueOptions(e.target.value);
-});
-
-document.getElementById("saveExercise").onclick = function () {
-
-  if (!selectedExercise) return alert("Selecione um exercício.");
-
-  const day = daySelector.value;
-
-  if (!appState.workouts[day]) {
-    appState.workouts[day] = [];
+  if (selectedTechnique) {
+    filtered = [
+      selectedTechnique,
+      ...filtered.filter(t => t !== selectedTechnique)
+    ];
   }
 
-  appState.workouts[day].push({
-    exercise: selectedExercise,
-    technique: selectedTechnique
+  filtered.forEach(t => {
+
+    const div = document.createElement("div");
+    div.textContent = t;
+
+    if (selectedTechnique === t) {
+      div.classList.add("selected");
+    }
+
+    div.onclick = () => {
+      selectedTechnique = t;
+      techniqueSearch.value = "";
+      updateSelectedTechniqueBox();
+      renderTechniqueOptions();
+    };
+
+    techniqueListEl.appendChild(div);
   });
+}
 
-  saveState();
-  renderExercises();
+function updateSelectedExerciseBox() {
+  if (selectedExercise) {
+    selectedExerciseBox.textContent = "Selecionado: " + selectedExercise;
+    selectedExerciseBox.classList.remove("hidden");
+  } else {
+    selectedExerciseBox.classList.add("hidden");
+  }
+}
 
+function updateSelectedTechniqueBox() {
+  if (selectedTechnique) {
+    selectedTechniqueBox.textContent = "Técnica: " + selectedTechnique;
+    selectedTechniqueBox.classList.remove("hidden");
+  } else {
+    selectedTechniqueBox.classList.add("hidden");
+  }
+}
+
+document.getElementById("clearSelection").onclick = function () {
   selectedExercise = null;
   selectedTechnique = null;
-  modal.classList.remove("show");
+  exerciseSearch.value = "";
+  techniqueSearch.value = "";
+  updateSelectedExerciseBox();
+  updateSelectedTechniqueBox();
+  renderExerciseOptions();
+  renderTechniqueOptions();
 };
 
   // ==========================
@@ -218,5 +221,6 @@ document.getElementById("saveExercise").onclick = function () {
   renderExercises();
 
 });
+
 
 
