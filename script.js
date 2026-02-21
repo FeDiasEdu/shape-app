@@ -59,36 +59,43 @@ document.addEventListener("DOMContentLoaded", function () {
       div.innerHTML = `
         <h3>${ex}</h3>
         <div class="seriesContainer"></div>
-        <button onclick="addSerie(this)">+ Série</button>
+        <button class="primary addSerieBtn">+ Série</button>
       `;
       exerciseList.appendChild(div);
     });
   }
 
-  window.addSerie = function(button) {
-    const container = button.parentElement.querySelector(".seriesContainer");
-    const div = document.createElement("div");
-    div.className = "serie";
-    div.innerHTML = `
-      <input type="number" placeholder="Peso">
-      <input type="number" placeholder="Reps">
-      <button onclick="this.parentElement.remove()">X</button>
-    `;
-    container.appendChild(div);
-  };
+  exerciseList.addEventListener("click", function(e){
+    if(e.target.classList.contains("addSerieBtn")){
+      const container = e.target.parentElement.querySelector(".seriesContainer");
+      const div = document.createElement("div");
+      div.className = "serie";
+      div.innerHTML = `
+        <input type="number" placeholder="Peso">
+        <input type="number" placeholder="Reps">
+        <button class="removeSerie">X</button>
+      `;
+      container.appendChild(div);
+    }
+
+    if(e.target.classList.contains("removeSerie")){
+      e.target.parentElement.remove();
+    }
+  });
 
   window.finishWorkout = function () {
     const date = new Date().toISOString().split("T")[0];
     const day = selector.value;
 
     let totalVolume = 0;
+
     workoutData[date] = workoutData[date] || {};
     workoutData[date][day] = {};
 
     document.querySelectorAll("#exerciseList .card").forEach(card => {
       const exName = card.querySelector("h3").textContent;
-
       const series = [];
+
       card.querySelectorAll(".serie").forEach(s => {
         const peso = Number(s.children[0].value);
         const reps = Number(s.children[1].value);
@@ -105,41 +112,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const lastVolume = getLastWorkoutVolume(day, date);
-    let diffText = "";
-  
+
     if (lastVolume !== null) {
       const diff = ((totalVolume - lastVolume) / lastVolume) * 100;
       const arrow = diff >= 0 ? "↑" : "↓";
       const color = diff >= 0 ? "lime" : "red";
-      diffText = `${arrow} ${diff.toFixed(1)}%`;
       document.getElementById("lastVolume").innerHTML =
-        `<span style="color:${color}">${totalVolume} kg (${diffText})</span>`;
+        `<span style="color:${color}">${totalVolume} kg (${arrow} ${diff.toFixed(1)}%)</span>`;
     } else {
       document.getElementById("lastVolume").textContent =
         totalVolume + " kg";
     }
-  
+
     history.push(`${date} – ${day}`);
+
     localStorage.setItem("history", JSON.stringify(history));
     localStorage.setItem("workoutData", JSON.stringify(workoutData));
-  
+
     renderHistory();
     alert("Treino salvo 🚀");
-  };
-
-      if (series.length > 0) {
-        const pr = Math.max(...series.map(s => s.peso));
-        workoutData[date][day][exName] = { series, pr };
-      }
-    });
-
-    history.push(`${date} – ${day}`);
-    localStorage.setItem("history", JSON.stringify(history));
-    localStorage.setItem("workoutData", JSON.stringify(workoutData));
-
-    document.getElementById("lastVolume").textContent = totalVolume + " kg";
-    renderHistory();
-    alert("Treino salvo com sucesso 🚀");
   };
 
   function getLastWorkoutVolume(day, currentDate) {
@@ -178,15 +169,21 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addWeight = function() {
     const weight = Number(document.getElementById("weightInput").value);
     if (!weight) return;
+
     const date = new Date().toLocaleDateString();
     weightData.push({ date, weight });
+
     localStorage.setItem("weightData", JSON.stringify(weightData));
     document.getElementById("currentWeight").textContent = weight;
+
     renderChart();
   };
 
   function renderChart() {
     const ctx = document.getElementById("weightChart");
+
+    if (!ctx) return;
+
     new Chart(ctx, {
       type: "line",
       data: {
@@ -195,7 +192,7 @@ document.addEventListener("DOMContentLoaded", function () {
           label: "Peso",
           data: weightData.map(w => w.weight),
           borderColor: "#00ff88",
-          fill: false
+          tension: 0.3
         }]
       }
     });
@@ -210,5 +207,5 @@ document.addEventListener("DOMContentLoaded", function () {
   renderExercises();
   renderHistory();
   renderChart();
-});
 
+});
