@@ -130,6 +130,8 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.setItem("workoutData", JSON.stringify(workoutData));
 
     renderHistory();
+    updateDashboard();
+    
     alert("Treino salvo 🚀");
   };
 
@@ -207,6 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
   renderExercises();
   renderHistory();
   renderChart();
+  updateDashboard();
 
 function updateDashboard() {
 
@@ -257,4 +260,5 @@ function getWeekNumber(date) {
 }
 
 });
+
 
