@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
       appState.workouts[selectedDay] = [];
     }
 
-    appState.workouts[selectedDay].forEach((item, index) => {
+    .workouts[selectedDay].forEach((item, index) => {
 
       const div = document.createElement("div");
       div.className = "exercise-item";
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     container.querySelectorAll("button").forEach(btn => {
       btn.onclick = function () {
-        appState.workouts[selectedDay].splice(this.dataset.index, 1);
+        .workouts[selectedDay].splice(this.dataset.index, 1);
         saveState();
         renderExercises();
       };
@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const value = parseFloat(weightInput.value);
     if (!value) return;
 
-    appState.weights.push({
+    .weights.push({
       date: new Date().toLocaleDateString(),
       value
     });
@@ -108,9 +108,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateWeight() {
 
-    if (appState.weights.length > 0) {
+    if (.weights.length > 0) {
       currentWeightEl.textContent =
-        appState.weights[appState.weights.length - 1].value;
+        .weights[.weights.length - 1].value;
     }
 
     const ctx = document.getElementById("weightChart");
@@ -120,9 +120,9 @@ document.addEventListener("DOMContentLoaded", function () {
     chart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: appState.weights.map(w => w.date),
+        labels: .weights.map(w => w.date),
         datasets: [{
-          data: appState.weights.map(w => w.value),
+          data: .weights.map(w => w.value),
           borderColor: "#00ff88"
         }]
       },
@@ -160,6 +160,8 @@ document.addEventListener("DOMContentLoaded", function () {
     reader.readAsDataURL(file);
   });
 
+  if (!appState.photos) appState.photos = [];
+
   appState.photos.forEach(src => {
     const img = document.createElement("img");
     img.src = src;
@@ -172,3 +174,4 @@ document.addEventListener("DOMContentLoaded", function () {
   renderExercises();
 
 });
+
