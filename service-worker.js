@@ -1,11 +1,11 @@
 // ==========================
-// VERSIONAMENTO
+// VERSION
 // ==========================
 const APP_VERSION = "v15";
 const CACHE_NAME = `fitness-app-${APP_VERSION}`;
 
 // ==========================
-// CACHE
+// CACHE FILES
 // ==========================
 const urlsToCache = [
   "./",
@@ -47,7 +47,7 @@ self.addEventListener("activate", event => {
 });
 
 // ==========================
-// FETCH (Network First)
+// FETCH - NETWORK FIRST
 // ==========================
 self.addEventListener("fetch", event => {
   event.respondWith(
