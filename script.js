@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  // ==========================
+// ==========================
 // INITIAL STATE (v3)
 // ==========================
 
@@ -12,12 +12,10 @@ function loadState() {
   if (saved) {
     const parsed = JSON.parse(saved);
 
-    // 🔄 MIGRAÇÃO AUTOMÁTICA PARA v3
     if (!parsed.version || parsed.version < 3) {
 
       parsed.version = 3;
 
-      // Ajusta weights para novo formato
       if (Array.isArray(parsed.weights) && parsed.weights.length > 0) {
         if (typeof parsed.weights[0] === "number") {
           parsed.weights = parsed.weights.map(value => ({
@@ -29,7 +27,6 @@ function loadState() {
         parsed.weights = [];
       }
 
-      // Cria estrutura health se não existir
       parsed.health = parsed.health || {
         profile: {
           weight: null,
@@ -54,10 +51,7 @@ function loadState() {
         }
       };
 
-      // Cria estrutura diet
-      parsed.diet = parsed.diet || {
-        entries: {}
-      };
+      parsed.diet = parsed.diet || { entries: {} };
 
       localStorage.setItem("fitnessAppState", JSON.stringify(parsed));
     }
@@ -65,26 +59,9 @@ function loadState() {
     return parsed;
   }
 
-  // 🆕 ESTADO INICIAL LIMPO
   return {
     version: 3,
-    library: {
-      exercises: [
-        "Supino Reto","Supino Inclinado","Supino Declinado","Crucifixo",
-        "Cross Over","Peck Deck","Puxada Frente","Remada Curvada",
-        "Barra Fixa","Desenvolvimento","Elevação Lateral",
-        "Rosca Direta","Rosca Scott","Rosca Martelo",
-        "Tríceps Corda","Tríceps Testa",
-        "Agachamento","Leg Press","Stiff","Levantamento Terra",
-        "Panturrilha em Pé","Panturrilha Sentado"
-      ],
-      techniques: [
-        "Drop Set","Rest Pause","Bi-set","Tri-set","FST-7",
-        "Cluster","Pirâmide Crescente","Pirâmide Decrescente",
-        "Negativa","Isometria","Tempo Controlado",
-        "Série Forçada","GVT"
-      ]
-    },
+    library: { exercises: [], techniques: [] },
     workouts: {},
     weights: [],
     health: {
@@ -110,9 +87,7 @@ function loadState() {
         }
       }
     },
-    diet: {
-      entries: {}
-    },
+    diet: { entries: {} },
     settings: { theme: "dark" }
   };
 }
@@ -121,278 +96,223 @@ function saveState() {
   localStorage.setItem("fitnessAppState", JSON.stringify(appState));
 }
 
-  function saveState() {
-    localStorage.setItem("fitnessAppState", JSON.stringify(appState));
+// ==========================
+// SMART WEIGHT SYSTEM + HEALTH ENGINE
+// ==========================
+
+function addOrUpdateWeight(value) {
+
+  if (!value || isNaN(value)) return;
+
+  const today = new Date().toISOString().split("T")[0];
+  const existingIndex = appState.weights.findIndex(w => w.date === today);
+
+  if (existingIndex !== -1) {
+    appState.weights[existingIndex].value = value;
+  } else {
+    appState.weights.push({ date: today, value });
   }
 
-  // ==========================
-  // DRAWER
-  // ==========================
-  const drawer = document.getElementById("adminDrawer");
-  document.getElementById("menuToggle").onclick = () => drawer.classList.add("open");
-  document.getElementById("closeDrawer").onclick = () => drawer.classList.remove("open");
+  appState.health.profile.weight = value;
 
-  // ==========================
-  // DAY SELECTOR
-  // ==========================
-  const daySelector = document.getElementById("daySelector");
-  const days = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+  calculateHealthMetrics();
 
-  days.forEach(day => {
-    const option = document.createElement("option");
-    option.value = day;
-    option.textContent = day;
-    daySelector.appendChild(option);
+  saveState();
+  renderWeightUI();
+  renderHealthUI();
+}
+
+
+// ==========================
+// HEALTH CALCULATIONS
+// ==========================
+
+function calculateHealthMetrics() {
+
+  const profile = appState.health.profile;
+  const results = appState.health.results;
+
+  const weight = profile.weight;
+  const height = profile.height;
+  const age = profile.age;
+  const sex = profile.sex;
+  const activity = profile.activity;
+  const goal = profile.goal;
+
+  if (!weight || !height || !age) return;
+
+  const heightMeters = height / 100;
+
+  // IMC
+  const bmi = weight / (heightMeters * heightMeters);
+  results.bmi = parseFloat(bmi.toFixed(1));
+
+  if (bmi < 18.5) results.bmiLabel = "Abaixo do peso";
+  else if (bmi < 25) results.bmiLabel = "Normal";
+  else if (bmi < 30) results.bmiLabel = "Sobrepeso";
+  else results.bmiLabel = "Obesidade";
+
+  // TMB (Mifflin-St Jeor)
+  let tmb;
+  if (sex === "male") {
+    tmb = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+  } else {
+    tmb = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+  }
+
+  results.tmb = Math.round(tmb);
+
+  // TDEE
+  const tdee = tmb * activity;
+  results.tdee = Math.round(tdee);
+
+  // Água
+  results.water = Math.round(weight * 35); // ml
+
+  // Ajuste por objetivo
+  let targetCalories = tdee;
+
+  if (goal === "cutting") targetCalories -= 400;
+  if (goal === "bulking") targetCalories += 400;
+
+  results.macros.calories = Math.round(targetCalories);
+
+  // Proteína (2g/kg)
+  const protein = weight * 2;
+  results.macros.protein = Math.round(protein);
+
+  // Gordura (0.9g/kg)
+  const fats = weight * 0.9;
+  results.macros.fats = Math.round(fats);
+
+  // Carboidratos = resto das calorias
+  const proteinCalories = protein * 4;
+  const fatCalories = fats * 9;
+  const remainingCalories = targetCalories - (proteinCalories + fatCalories);
+
+  results.macros.carbs = Math.round(remainingCalories / 4);
+}
+
+
+// ==========================
+// HEALTH UI (placeholder)
+// ==========================
+
+function renderHealthUI() {
+  // Será implementado na próxima etapa
+}
+
+
+// ==========================
+// WEIGHT UI
+// ==========================
+
+const weightInput = document.getElementById("weightInput");
+const addWeightBtn = document.getElementById("addWeightBtn");
+
+if (addWeightBtn) {
+  addWeightBtn.addEventListener("click", () => {
+    const value = parseFloat(weightInput.value);
+    addOrUpdateWeight(value);
+    weightInput.value = "";
   });
+}
 
-  daySelector.addEventListener("change", renderExercises);
+function renderWeightUI() {
 
-  // ==========================
-  // RENDER EXERCISES
-  // ==========================
-  function renderExercises() {
+  const currentWeightSpan = document.getElementById("currentWeight");
 
-    const container = document.getElementById("exerciseContainer");
-    container.innerHTML = "";
-
-    const selectedDay = daySelector.value;
-
-    if (!appState.workouts[selectedDay]) {
-      appState.workouts[selectedDay] = [];
-    }
-
-    appState.workouts[selectedDay].forEach((item, index) => {
-
-      const div = document.createElement("div");
-      div.className = "exercise-item";
-
-      div.innerHTML = `
-        <div>
-          <strong>${item.exercise}</strong>
-          <br>
-          <small>${item.technique || "Sem técnica"}</small>
-        </div>
-        <button data-index="${index}">Remover</button>
-      `;
-
-      container.appendChild(div);
-    });
-
-    container.querySelectorAll("button").forEach(btn => {
-      btn.onclick = function () {
-        appState.workouts[selectedDay].splice(this.dataset.index, 1);
-        saveState();
-        renderExercises();
-      };
-    });
+  if (!appState.weights.length) {
+    currentWeightSpan.textContent = "-";
+    return;
   }
 
-  // ==========================
-  // MODAL ELEMENTS
-  // ==========================
-  const modal = document.getElementById("exerciseModal");
-  const exerciseListEl = document.getElementById("exerciseList");
-  const techniqueListEl = document.getElementById("techniqueList");
-  const exerciseSearch = document.getElementById("exerciseSearch");
-  const techniqueSearch = document.getElementById("techniqueSearch");
-  const selectedExerciseBox = document.getElementById("selectedExerciseBox");
-  const selectedTechniqueBox = document.getElementById("selectedTechniqueBox");
+  const lastWeight = appState.weights[appState.weights.length - 1].value;
+  currentWeightSpan.textContent = lastWeight;
+}
 
-  let selectedExercise = null;
-  let selectedTechnique = null;
+// ==========================
+// DRAWER
+// ==========================
 
-  // ==========================
-  // OPEN MODAL
-  // ==========================
-  document.getElementById("addExerciseBtn").onclick = function () {
+const drawer = document.getElementById("adminDrawer");
+document.getElementById("menuToggle").onclick = () => drawer.classList.add("open");
+document.getElementById("closeDrawer").onclick = () => drawer.classList.remove("open");
 
-    selectedExercise = null;
-    selectedTechnique = null;
+// ==========================
+// DAY SELECTOR
+// ==========================
 
-    exerciseSearch.value = "";
-    techniqueSearch.value = "";
+const daySelector = document.getElementById("daySelector");
+const days = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
 
-    updateSelectedExerciseBox();
-    updateSelectedTechniqueBox();
-
-    renderExerciseOptions();
-    renderTechniqueOptions();
-
-    modal.classList.add("show");
-  };
-
-  // CLOSE MODAL
-  document.getElementById("cancelExercise").onclick = function () {
-    modal.classList.remove("show");
-  };
-
-  // ==========================
-  // SEARCH FILTER
-  // ==========================
-  exerciseSearch.addEventListener("input", function (e) {
-    renderExerciseOptions(e.target.value);
-  });
-
-  techniqueSearch.addEventListener("input", function (e) {
-    renderTechniqueOptions(e.target.value);
-  });
-
-  // ==========================
-  // RENDER EXERCISES LIST
-  // ==========================
-  function renderExerciseOptions(filter = "") {
-
-    exerciseListEl.innerHTML = "";
-
-    let filtered = appState.library.exercises
-      .filter(ex => ex.toLowerCase().includes(filter.toLowerCase()));
-
-    if (selectedExercise) {
-      filtered = [
-        selectedExercise,
-        ...filtered.filter(ex => ex !== selectedExercise)
-      ];
-    }
-
-    filtered.forEach(ex => {
-
-      const div = document.createElement("div");
-      div.textContent = ex;
-
-      if (selectedExercise === ex) {
-        div.classList.add("selected");
-      }
-
-      div.onclick = () => {
-        selectedExercise = ex;
-        exerciseSearch.value = "";
-        updateSelectedExerciseBox();
-        renderExerciseOptions();
-      };
-
-      exerciseListEl.appendChild(div);
-    });
-  }
-
-  // ==========================
-  // RENDER TECHNIQUES LIST
-  // ==========================
-  function renderTechniqueOptions(filter = "") {
-
-    techniqueListEl.innerHTML = "";
-
-    let filtered = appState.library.techniques
-      .filter(t => t.toLowerCase().includes(filter.toLowerCase()));
-
-    if (selectedTechnique) {
-      filtered = [
-        selectedTechnique,
-        ...filtered.filter(t => t !== selectedTechnique)
-      ];
-    }
-
-    filtered.forEach(t => {
-
-      const div = document.createElement("div");
-      div.textContent = t;
-
-      if (selectedTechnique === t) {
-        div.classList.add("selected");
-      }
-
-      div.onclick = () => {
-        selectedTechnique = t;
-        techniqueSearch.value = "";
-        updateSelectedTechniqueBox();
-        renderTechniqueOptions();
-      };
-
-      techniqueListEl.appendChild(div);
-    });
-  }
-
-  // ==========================
-  // UPDATE SELECTED BOXES
-  // ==========================
-  function updateSelectedExerciseBox() {
-    if (selectedExercise) {
-      selectedExerciseBox.textContent = "Selecionado: " + selectedExercise;
-      selectedExerciseBox.classList.remove("hidden");
-    } else {
-      selectedExerciseBox.classList.add("hidden");
-    }
-  }
-
-  function updateSelectedTechniqueBox() {
-    if (selectedTechnique) {
-      selectedTechniqueBox.textContent = "Técnica: " + selectedTechnique;
-      selectedTechniqueBox.classList.remove("hidden");
-    } else {
-      selectedTechniqueBox.classList.add("hidden");
-    }
-  }
-
-  // ==========================
-  // CLEAR SELECTION
-  // ==========================
-  document.getElementById("clearSelection").onclick = function () {
-
-    selectedExercise = null;
-    selectedTechnique = null;
-
-    exerciseSearch.value = "";
-    techniqueSearch.value = "";
-
-    updateSelectedExerciseBox();
-    updateSelectedTechniqueBox();
-
-    renderExerciseOptions();
-    renderTechniqueOptions();
-  };
-
-  // ==========================
-  // SAVE EXERCISE
-  // ==========================
-  document.getElementById("saveExercise").onclick = function () {
-
-    if (!selectedExercise) {
-      alert("Selecione um exercício.");
-      return;
-    }
-
-    const day = daySelector.value;
-
-    if (!appState.workouts[day]) {
-      appState.workouts[day] = [];
-    }
-
-    appState.workouts[day].push({
-      exercise: selectedExercise,
-      technique: selectedTechnique
-    });
-
-    saveState();
-    renderExercises();
-
-    modal.classList.remove("show");
-  };
-
-  // ==========================
-  // NAVBAR
-  // ==========================
-  const navItems = document.querySelectorAll(".nav-item");
-  const sections = document.querySelectorAll(".section");
-
-  navItems.forEach(btn => {
-    btn.addEventListener("click", function () {
-      sections.forEach(sec => sec.classList.remove("active"));
-      navItems.forEach(n => n.classList.remove("active"));
-      document.getElementById(this.dataset.section).classList.add("active");
-      this.classList.add("active");
-    });
-  });
-
-  renderExercises();
-
+days.forEach(day => {
+  const option = document.createElement("option");
+  option.value = day;
+  option.textContent = day;
+  daySelector.appendChild(option);
 });
 
+daySelector.addEventListener("change", renderExercises);
+
+// ==========================
+// RENDER EXERCISES
+// ==========================
+
+function renderExercises() {
+
+  const container = document.getElementById("exerciseContainer");
+  container.innerHTML = "";
+
+  const selectedDay = daySelector.value;
+
+  if (!appState.workouts[selectedDay]) {
+    appState.workouts[selectedDay] = [];
+  }
+
+  appState.workouts[selectedDay].forEach((item, index) => {
+
+    const div = document.createElement("div");
+    div.className = "exercise-item";
+
+    div.innerHTML = `
+      <div>
+        <strong>${item.exercise}</strong>
+        <br>
+        <small>${item.technique || "Sem técnica"}</small>
+      </div>
+      <button data-index="${index}">Remover</button>
+    `;
+
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll("button").forEach(btn => {
+    btn.onclick = function () {
+      appState.workouts[selectedDay].splice(this.dataset.index, 1);
+      saveState();
+      renderExercises();
+    };
+  });
+}
+
+// ==========================
+// NAVBAR
+// ==========================
+
+const navItems = document.querySelectorAll(".nav-item");
+const sections = document.querySelectorAll(".section");
+
+navItems.forEach(btn => {
+  btn.addEventListener("click", function () {
+    sections.forEach(sec => sec.classList.remove("active"));
+    navItems.forEach(n => n.classList.remove("active"));
+    document.getElementById(this.dataset.section).classList.add("active");
+    this.classList.add("active");
+  });
+});
+
+renderExercises();
+renderWeightUI();
+
+});
