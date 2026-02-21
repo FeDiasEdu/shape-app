@@ -1,16 +1,16 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  let refreshing = false;
   let newWorker = null;
+  let refreshing = false;
 
   // ==========================
   // SERVICE WORKER + UPDATE
   // ==========================
   if ("serviceWorker" in navigator) {
+
     navigator.serviceWorker.register("service-worker.js")
       .then(registration => {
 
-        // Caso já exista um worker esperando
         if (registration.waiting) {
           newWorker = registration.waiting;
           showUpdateToast();
@@ -42,25 +42,27 @@ document.addEventListener("DOMContentLoaded", function () {
   function showUpdateToast() {
     const toast = document.getElementById("updateToast");
     const btn = document.getElementById("updateBtn");
-  
+
     if (!toast || !btn) return;
-  
+
     toast.classList.add("show");
-  
+
     btn.onclick = () => {
-      if (newWorker) {
-  
-        btn.textContent = "Atualizando...";
-        btn.disabled = true;
-  
-        // envia mensagem para ativar novo SW
-        newWorker.postMessage({ type: "SKIP_WAITING" });
-  
-        // força reload após pequeno delay
-        setTimeout(() => {
+
+      if (!newWorker) return;
+
+      btn.textContent = "Atualizando...";
+      btn.disabled = true;
+
+      // envia mensagem
+      newWorker.postMessage({ type: "SKIP_WAITING" });
+
+      // fallback se controllerchange não disparar
+      setTimeout(() => {
+        if (!refreshing) {
           window.location.reload();
-        }, 300);
-      }
+        }
+      }, 1500);
     };
   }
 
@@ -110,5 +112,3 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 });
-
-
