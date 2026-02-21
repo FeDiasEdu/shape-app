@@ -1,15 +1,119 @@
+/* ==========================
+   RESET
+========================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ==========================
+   BODY
+========================== */
+body {
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color: white;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ==========================
+   SPLASH
+========================== */
+#splashScreen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg,#00ff88,#00cc6a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-size: 28px;
+  font-weight: bold;
+  animation: fadeSplash 1.2s forwards;
+}
+
+@keyframes fadeSplash {
+  0% { opacity:1; }
+  80% { opacity:1; }
+  100% { opacity:0; visibility:hidden; }
+}
+
+/* ==========================
+   HEADER
+========================== */
+header {
+  padding: 20px;
+  text-align: center;
+}
+
+/* ==========================
+   SECTIONS
+========================== */
+.section {
+  display: none;
+  padding: 20px;
+  animation: slideFade 0.3s ease;
+}
+
+.section.active {
+  display: block;
+}
+
+@keyframes slideFade {
+  from { opacity:0; transform:translateX(10px); }
+  to { opacity:1; transform:translateX(0); }
+}
+
+/* ==========================
+   CARD (GLASS)
+========================== */
+.card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ==========================
+   BOTÕES
+========================== */
+button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+button.primary {
+  background: #00ff88;
+  color: black;
+  font-weight: bold;
+}
+
+/* ==========================
+   NAVBAR
+========================== */
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  width: 100%;
+  left: 0;
+  right: 0;
   height: 70px;
+
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(20px);
+
   display: flex;
   justify-content: space-around;
   align-items: center;
+
   border-top: 1px solid rgba(255,255,255,0.1);
   overflow: hidden;
+  z-index: 999;
 }
 
 .nav-item {
@@ -43,6 +147,9 @@
   filter: drop-shadow(0 0 6px #00ff88);
 }
 
+/* ==========================
+   INDICADOR
+========================== */
 .nav-indicator {
   position: absolute;
   bottom: 0;
@@ -50,19 +157,5 @@
   background: #00ff88;
   border-radius: 4px 4px 0 0;
   transition: all 0.35s cubic-bezier(.68,-0.55,.27,1.55);
+  z-index: 1;
 }
-
-/* ==========================
-   CONTROLE DE SECTIONS
-========================== */
-
-.section {
-  display: none;
-  padding: 20px;
-  animation: slideFade 0.3s ease;
-}
-
-.section.active {
-  display: block;
-}
-
