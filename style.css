@@ -52,3 +52,14 @@
   transition: all 0.35s cubic-bezier(.68,-0.55,.27,1.55);
 }
 
+/* ==========================
+   CONTROLE DE SECTIONS
+========================== */
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
