@@ -1,21 +1,42 @@
 document.addEventListener("DOMContentLoaded", function () {
 
+  // ==========================
+  // INITIAL STATE
+  // ==========================
   let appState = loadState();
 
   function loadState() {
     const saved = localStorage.getItem("fitnessAppState");
+
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (!parsed.photos) parsed.photos = [];
+
+      if (!parsed.library) parsed.library = { exercises: [], techniques: [] };
+      if (!parsed.workouts) parsed.workouts = {};
       if (!parsed.weights) parsed.weights = [];
+      if (!parsed.photos) parsed.photos = [];
+
       return parsed;
     }
 
     return {
       version: 2,
       library: {
-        exercises: ["Supino Reto","Supino Inclinado","Agachamento"],
-        techniques: ["Drop Set","Rest Pause"]
+        exercises: [
+          "Supino Reto","Supino Inclinado","Supino Declinado","Crucifixo",
+          "Cross Over","Peck Deck","Puxada Frente","Remada Curvada",
+          "Barra Fixa","Desenvolvimento","Elevação Lateral",
+          "Rosca Direta","Rosca Scott","Rosca Martelo",
+          "Tríceps Corda","Tríceps Testa",
+          "Agachamento","Leg Press","Stiff","Levantamento Terra",
+          "Panturrilha em Pé","Panturrilha Sentado"
+        ],
+        techniques: [
+          "Drop Set","Rest Pause","Bi-set","Tri-set","FST-7",
+          "Cluster","Pirâmide Crescente","Pirâmide Decrescente",
+          "Negativa","Isometria","Tempo Controlado",
+          "Série Forçada","GVT"
+        ]
       },
       workouts: {},
       weights: [],
@@ -28,7 +49,9 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.setItem("fitnessAppState", JSON.stringify(appState));
   }
 
-  // ================= NAV =================
+  // ==========================
+  // NAVIGATION
+  // ==========================
   const navItems = document.querySelectorAll(".nav-item");
   const sections = document.querySelectorAll(".section");
 
@@ -41,7 +64,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // ================= DAY SELECTOR =================
+  // ==========================
+  // DAY SELECTOR
+  // ==========================
   const daySelector = document.getElementById("daySelector");
   const days = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
 
@@ -54,6 +79,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   daySelector.addEventListener("change", renderExercises);
 
+  // ==========================
+  // RENDER EXERCISES
+  // ==========================
   function renderExercises() {
 
     const container = document.getElementById("exerciseContainer");
@@ -87,11 +115,87 @@ document.addEventListener("DOMContentLoaded", function () {
         appState.workouts[selectedDay].splice(this.dataset.index, 1);
         saveState();
         renderExercises();
+        updateDashboardStats();
       };
+    });
+
+    updateDashboardStats();
+  }
+
+  function updateDashboardStats() {
+    document.getElementById("totalWorkouts").textContent =
+      Object.values(appState.workouts)
+        .reduce((total, day) => total + day.length, 0);
+  }
+
+  // ==========================
+  // MODAL EXERCISE (ORIGINAL)
+  // ==========================
+  const modal = document.getElementById("exerciseModal");
+  const addExerciseBtn = document.getElementById("addExerciseBtn");
+  const cancelExercise = document.getElementById("cancelExercise");
+  const saveExerciseBtn = document.getElementById("saveExercise");
+  const exerciseListEl = document.getElementById("exerciseList");
+  const techniqueListEl = document.getElementById("techniqueList");
+
+  let selectedExercise = null;
+  let selectedTechnique = null;
+
+  addExerciseBtn.onclick = function () {
+    selectedExercise = null;
+    selectedTechnique = null;
+    renderExerciseOptions();
+    renderTechniqueOptions();
+    modal.classList.add("show");
+  };
+
+  cancelExercise.onclick = function () {
+    modal.classList.remove("show");
+  };
+
+  function renderExerciseOptions() {
+    exerciseListEl.innerHTML = "";
+    appState.library.exercises.forEach(ex => {
+      const div = document.createElement("div");
+      div.textContent = ex;
+      div.onclick = () => selectedExercise = ex;
+      exerciseListEl.appendChild(div);
     });
   }
 
-  // ================= PESO =================
+  function renderTechniqueOptions() {
+    techniqueListEl.innerHTML = "";
+    appState.library.techniques.forEach(t => {
+      const div = document.createElement("div");
+      div.textContent = t;
+      div.onclick = () => selectedTechnique = t;
+      techniqueListEl.appendChild(div);
+    });
+  }
+
+  saveExerciseBtn.onclick = function () {
+
+    if (!selectedExercise) return;
+
+    const day = daySelector.value;
+
+    if (!appState.workouts[day]) {
+      appState.workouts[day] = [];
+    }
+
+    appState.workouts[day].push({
+      exercise: selectedExercise,
+      technique: selectedTechnique
+    });
+
+    saveState();
+    renderExercises();
+    modal.classList.remove("show");
+  };
+
+  // ==========================
+  // PESO (1 POR DIA)
+  // ==========================
   const weightInput = document.getElementById("weightInput");
   const addWeightBtn = document.getElementById("addWeightBtn");
   const currentWeightEl = document.getElementById("currentWeight");
@@ -110,10 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (existing) {
       existing.value = value;
     } else {
-      appState.weights.push({
-        date: today,
-        value
-      });
+      appState.weights.push({ date: today, value });
     }
 
     saveState();
@@ -147,7 +248,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   updateWeight();
 
-  // ================= FOTOS =================
+  // ==========================
+  // FOTOS (COM EXCLUIR)
+  // ==========================
   const photoUpload = document.getElementById("photoUpload");
   const photoGallery = document.getElementById("photoGallery");
 
@@ -206,7 +309,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   renderPhotos();
-
   renderExercises();
 
 });
