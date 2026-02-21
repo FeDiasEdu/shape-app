@@ -1,38 +1,125 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   // ==========================
-  // INITIAL STATE
-  // ==========================
-  let appState = loadState();
+// INITIAL STATE (v3)
+// ==========================
 
-  function loadState() {
-    const saved = localStorage.getItem("fitnessAppState");
-    if (saved) return JSON.parse(saved);
+let appState = loadState();
 
-    return {
-      version: 2,
-      library: {
-        exercises: [
-          "Supino Reto","Supino Inclinado","Supino Declinado","Crucifixo",
-          "Cross Over","Peck Deck","Puxada Frente","Remada Curvada",
-          "Barra Fixa","Desenvolvimento","Elevação Lateral",
-          "Rosca Direta","Rosca Scott","Rosca Martelo",
-          "Tríceps Corda","Tríceps Testa",
-          "Agachamento","Leg Press","Stiff","Levantamento Terra",
-          "Panturrilha em Pé","Panturrilha Sentado"
-        ],
-        techniques: [
-          "Drop Set","Rest Pause","Bi-set","Tri-set","FST-7",
-          "Cluster","Pirâmide Crescente","Pirâmide Decrescente",
-          "Negativa","Isometria","Tempo Controlado",
-          "Série Forçada","GVT"
-        ]
-      },
-      workouts: {},
-      weights: [],
-      settings: { theme: "dark" }
-    };
+function loadState() {
+  const saved = localStorage.getItem("fitnessAppState");
+
+  if (saved) {
+    const parsed = JSON.parse(saved);
+
+    // 🔄 MIGRAÇÃO AUTOMÁTICA PARA v3
+    if (!parsed.version || parsed.version < 3) {
+
+      parsed.version = 3;
+
+      // Ajusta weights para novo formato
+      if (Array.isArray(parsed.weights) && parsed.weights.length > 0) {
+        if (typeof parsed.weights[0] === "number") {
+          parsed.weights = parsed.weights.map(value => ({
+            date: new Date().toISOString().split("T")[0],
+            value
+          }));
+        }
+      } else {
+        parsed.weights = [];
+      }
+
+      // Cria estrutura health se não existir
+      parsed.health = parsed.health || {
+        profile: {
+          weight: null,
+          height: null,
+          age: null,
+          sex: "male",
+          activity: 1.55,
+          goal: "maintenance"
+        },
+        results: {
+          bmi: 0,
+          bmiLabel: "",
+          tmb: 0,
+          tdee: 0,
+          water: 0,
+          macros: {
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fats: 0
+          }
+        }
+      };
+
+      // Cria estrutura diet
+      parsed.diet = parsed.diet || {
+        entries: {}
+      };
+
+      localStorage.setItem("fitnessAppState", JSON.stringify(parsed));
+    }
+
+    return parsed;
   }
+
+  // 🆕 ESTADO INICIAL LIMPO
+  return {
+    version: 3,
+    library: {
+      exercises: [
+        "Supino Reto","Supino Inclinado","Supino Declinado","Crucifixo",
+        "Cross Over","Peck Deck","Puxada Frente","Remada Curvada",
+        "Barra Fixa","Desenvolvimento","Elevação Lateral",
+        "Rosca Direta","Rosca Scott","Rosca Martelo",
+        "Tríceps Corda","Tríceps Testa",
+        "Agachamento","Leg Press","Stiff","Levantamento Terra",
+        "Panturrilha em Pé","Panturrilha Sentado"
+      ],
+      techniques: [
+        "Drop Set","Rest Pause","Bi-set","Tri-set","FST-7",
+        "Cluster","Pirâmide Crescente","Pirâmide Decrescente",
+        "Negativa","Isometria","Tempo Controlado",
+        "Série Forçada","GVT"
+      ]
+    },
+    workouts: {},
+    weights: [],
+    health: {
+      profile: {
+        weight: null,
+        height: null,
+        age: null,
+        sex: "male",
+        activity: 1.55,
+        goal: "maintenance"
+      },
+      results: {
+        bmi: 0,
+        bmiLabel: "",
+        tmb: 0,
+        tdee: 0,
+        water: 0,
+        macros: {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fats: 0
+        }
+      }
+    },
+    diet: {
+      entries: {}
+    },
+    settings: { theme: "dark" }
+  };
+}
+
+function saveState() {
+  localStorage.setItem("fitnessAppState", JSON.stringify(appState));
+}
 
   function saveState() {
     localStorage.setItem("fitnessAppState", JSON.stringify(appState));
@@ -308,3 +395,4 @@ document.addEventListener("DOMContentLoaded", function () {
   renderExercises();
 
 });
+
