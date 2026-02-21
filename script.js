@@ -342,3 +342,9 @@ document.addEventListener("DOMContentLoaded", function () {
       newWorker.postMessage({ type: "SKIP_WAITING" });
     }
   });
+
+  // Garantia de remoção do Splash
+  setTimeout(() => {
+    const splash = document.getElementById("splashScreen");
+    if (splash) splash.style.display = "none";
+  }, 2000);
