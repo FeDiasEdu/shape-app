@@ -133,11 +133,32 @@
     
         <div class="card" style="margin-top:12px;">
           <h4>Totais Consumidos</h4>
-          <p><strong>Calorias:</strong> <span id="dietTotalCalories">0</span> / <span id="dietTargetCalories">-</span> kcal</p>
-          <p><strong>Proteína:</strong> <span id="dietTotalProtein">0</span> / <span id="dietTargetProtein">-</span> g</p>
-          <p><strong>Carboidratos:</strong> <span id="dietTotalCarbs">0</span> / <span id="dietTargetCarbs">-</span> g</p>
-          <p><strong>Gorduras:</strong> <span id="dietTotalFats">0</span> / <span id="dietTargetFats">-</span> g</p>
-          <p><strong>Água:</strong> <span id="dietWaterConsumed">0</span> / <span id="dietWaterTarget">-</span> ml</p>
+        
+          <div class="progress-group">
+            <label>Calorias: <span id="dietTotalCalories">0</span> / <span id="dietTargetCalories">-</span> kcal</label>
+            <div class="progress-bar"><div id="barCalories" class="progress-fill"></div></div>
+          </div>
+        
+          <div class="progress-group">
+            <label>Proteína: <span id="dietTotalProtein">0</span> / <span id="dietTargetProtein">-</span> g</label>
+            <div class="progress-bar"><div id="barProtein" class="progress-fill"></div></div>
+          </div>
+        
+          <div class="progress-group">
+            <label>Carboidratos: <span id="dietTotalCarbs">0</span> / <span id="dietTargetCarbs">-</span> g</label>
+            <div class="progress-bar"><div id="barCarbs" class="progress-fill"></div></div>
+          </div>
+        
+          <div class="progress-group">
+            <label>Gorduras: <span id="dietTotalFats">0</span> / <span id="dietTargetFats">-</span> g</label>
+            <div class="progress-bar"><div id="barFats" class="progress-fill"></div></div>
+          </div>
+        
+          <div class="progress-group">
+            <label>Água: <span id="dietWaterConsumed">0</span> / <span id="dietWaterTarget">-</span> ml</label>
+            <div class="progress-bar"><div id="barWater" class="progress-fill"></div></div>
+          </div>
+        
         </div>
     
         <h4 style="margin-top:12px;">Adicionar Alimento</h4>
@@ -329,5 +350,6 @@
 
 </body>
 </html>
+
 
 
