@@ -421,3 +421,12 @@ header {
 .hidden {
   display: none;
 }
+
+#weightChart {
+  max-height: 300px;
+}
+
+select option {
+  background: #1a1a1a;
+  color: white;
+}
