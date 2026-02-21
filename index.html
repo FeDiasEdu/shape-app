@@ -47,8 +47,10 @@
 
 <section id="weight" class="section">
   <h2>Peso</h2>
-  <input type="number" id="weightInput" placeholder="Digite o peso" />
-  <button onclick="addWeight()">Registrar</button>
+  <div class="card">
+  <input type="number" id="weightInput" placeholder="Digite o peso (kg)" />
+  <button onclick="addWeight()" class="primary">Registrar Peso</button>
+</div>
   <canvas id="weightChart"></canvas>
 </section>
 
@@ -116,4 +118,5 @@
 
 </body>
 </html>
+
 
