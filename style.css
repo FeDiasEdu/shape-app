@@ -145,6 +145,26 @@ button.primary {
   filter: drop-shadow(0 0 6px #00ff88);
 }
 
+// ==========================
+// NUTRITION INTERNAL TABS
+// ==========================
+
+const nutritionTabs = document.querySelectorAll(".nutrition-tab");
+const nutritionContents = document.querySelectorAll(".nutrition-content");
+
+nutritionTabs.forEach(tab => {
+  tab.addEventListener("click", function () {
+
+    nutritionTabs.forEach(t => t.classList.remove("active"));
+    nutritionContents.forEach(c => c.classList.remove("active"));
+
+    this.classList.add("active");
+
+    const target = document.getElementById(this.dataset.tab);
+    if (target) target.classList.add("active");
+  });
+}
+
 /* ==========================
    INDICADOR
 ========================== */
@@ -521,3 +541,4 @@ header {
 .nutrition-content.active {
   display: block;
 }
+
