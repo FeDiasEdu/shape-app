@@ -1,11 +1,11 @@
 // ==========================
 // VERSIONAMENTO
 // ==========================
-const APP_VERSION = "v7";
+const APP_VERSION = "v8";
 const CACHE_NAME = `fitness-app-${APP_VERSION}`;
 
 // ==========================
-// ARQUIVOS PARA CACHE
+// CACHE
 // ==========================
 const urlsToCache = [
   "./",
@@ -33,21 +33,21 @@ self.addEventListener("install", event => {
 // ==========================
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
           }
         })
-      );
-    })
+      )
+    )
   );
   return self.clients.claim();
 });
 
 // ==========================
-// FETCH (NETWORK FIRST)
+// FETCH (Network First)
 // ==========================
 self.addEventListener("fetch", event => {
   event.respondWith(
@@ -63,10 +63,10 @@ self.addEventListener("fetch", event => {
 });
 
 // ==========================
-// SKIP WAITING VIA MESSAGE
+// SKIP WAITING
 // ==========================
 self.addEventListener("message", event => {
-  if (event.data === "SKIP_WAITING") {
+  if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
