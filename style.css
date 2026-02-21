@@ -455,3 +455,37 @@ header {
   background: #ff4d4d;
 }
 
+/* ==========================
+   BOTÃO CENTRAL (TREINOS)
+========================== */
+
+.nav-main {
+  position: relative;
+  transform: translateY(-18px);
+  background: linear-gradient(135deg,#00ff88,#00cc6a);
+  color: black !important;
+  font-weight: bold;
+  padding: 14px 20px;
+  border-radius: 50px;
+  box-shadow: 0 10px 25px rgba(0,255,136,0.35);
+  transition: all 0.3s ease;
+  z-index: 3;
+}
+
+.nav-main span {
+  font-size: 14px;
+}
+
+.nav-main:hover {
+  transform: translateY(-22px) scale(1.05);
+  box-shadow: 0 14px 30px rgba(0,255,136,0.5);
+}
+
+.nav-main.active {
+  box-shadow: 0 0 18px rgba(0,255,136,0.8);
+}
+
+/* Ajuste para os demais ficarem equilibrados */
+.bottom-nav {
+  padding-top: 10px;
+}
