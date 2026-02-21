@@ -27,13 +27,70 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function saveState() {
     localStorage.setItem("fitnessAppState", JSON.stringify(appState));
+    createAutoBackup();
   }
 
   // ==========================
-  // BACKUP EXPORT
+  // AUTO BACKUP SYSTEM
+  // ==========================
+  const AUTO_BACKUP_KEY = "fitnessAutoBackups";
+  const MAX_BACKUPS = 5;
+
+  function getAutoBackups() {
+    return JSON.parse(localStorage.getItem(AUTO_BACKUP_KEY)) || [];
+  }
+
+  function createAutoBackup() {
+    let backups = getAutoBackups();
+
+    backups.unshift({
+      date: new Date().toISOString(),
+      data: JSON.parse(JSON.stringify(appState))
+    });
+
+    if (backups.length > MAX_BACKUPS) {
+      backups = backups.slice(0, MAX_BACKUPS);
+    }
+
+    localStorage.setItem(AUTO_BACKUP_KEY, JSON.stringify(backups));
+    renderBackupList();
+  }
+
+  window.restoreAutoBackup = function (index) {
+    const backups = getAutoBackups();
+
+    if (!backups[index]) return;
+
+    if (!confirm("Deseja restaurar este backup?")) return;
+
+    appState = backups[index].data;
+    saveState();
+    location.reload();
+  };
+
+  function renderBackupList() {
+    const container = document.getElementById("autoBackupList");
+    if (!container) return;
+
+    const backups = getAutoBackups();
+
+    container.innerHTML = "";
+
+    backups.forEach((b, index) => {
+      const div = document.createElement("div");
+      div.className = "backupItem";
+      div.innerHTML = `
+        <p>${new Date(b.date).toLocaleString()}</p>
+        <button onclick="restoreAutoBackup(${index})">Restaurar</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  // ==========================
+  // BACKUP MANUAL
   // ==========================
   window.exportBackup = function () {
-
     const dataStr = JSON.stringify(appState, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
 
@@ -47,11 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
     URL.revokeObjectURL(url);
   };
 
-  // ==========================
-  // BACKUP IMPORT
-  // ==========================
   window.importBackup = function () {
-
     const fileInput = document.getElementById("importFile");
     const file = fileInput.files[0];
 
@@ -65,7 +118,6 @@ document.addEventListener("DOMContentLoaded", function () {
     reader.onload = function (e) {
       try {
         const importedData = JSON.parse(e.target.result);
-
         if (!importedData.version) {
           alert("Arquivo inválido.");
           return;
@@ -73,11 +125,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         appState = importedData;
         saveState();
-
         alert("Backup restaurado com sucesso!");
         location.reload();
 
-      } catch (err) {
+      } catch {
         alert("Erro ao importar arquivo.");
       }
     };
@@ -105,7 +156,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("themeToggle")?.addEventListener("click", function () {
     document.body.classList.toggle("dark");
-    appState.settings.theme = document.body.classList.contains("dark") ? "dark" : "light";
+    appState.settings.theme =
+      document.body.classList.contains("dark") ? "dark" : "light";
     saveState();
   });
 
@@ -127,33 +179,16 @@ document.addEventListener("DOMContentLoaded", function () {
     selector.appendChild(option);
   });
 
-  function renderExercises() {
-    exerciseList.innerHTML = "";
-    workoutsData[selector.value].forEach(ex => {
-      const div = document.createElement("div");
-      div.className = "card";
-      div.innerHTML = `
-        <h3>${ex}</h3>
-        <div class="seriesContainer"></div>
-        <button class="primary addSerieBtn">+ Série</button>
-      `;
-      exerciseList.appendChild(div);
-    });
-  }
-
   window.finishWorkout = function () {
     const date = new Date().toISOString().split("T")[0];
     const day = selector.value;
 
     appState.workouts[date] = appState.workouts[date] || {};
     appState.workouts[date][day] = {};
-
     appState.history.push(`${date} – ${day}`);
-    saveState();
 
+    saveState();
     renderHistory();
-    updateDashboard();
-    alert("Treino salvo 🚀");
   };
 
   function renderHistory() {
@@ -165,20 +200,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function updateDashboard() {
-    document.getElementById("weeklyWorkouts").textContent =
-      Object.keys(appState.workouts).length || "-";
-  }
-
   window.addWeight = function() {
     const weight = Number(weightInput.value);
     if (!weight) return;
 
     const date = new Date().toLocaleDateString();
     appState.weights.push({ date, weight });
-    saveState();
 
-    document.getElementById("currentWeight").textContent = weight;
+    saveState();
     renderChart();
   };
 
@@ -201,11 +230,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  selector.addEventListener("change", renderExercises);
+  selector.addEventListener("change", () => {});
 
-  renderExercises();
   renderHistory();
   renderChart();
-  updateDashboard();
+  renderBackupList();
+
+  // ==========================
+  // AUTO BACKUP TIMER
+  // ==========================
+  setInterval(() => {
+    createAutoBackup();
+    console.log("Backup automático criado");
+  }, 300000); // 5 minutos
 
 });
