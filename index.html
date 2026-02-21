@@ -2,47 +2,63 @@
 <html lang="pt-BR">
 
 <head>
+  <!-- ==========================
+       META
+  ========================== -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#00ff88">
+
   <title>Fitness Training Pro</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <!-- ==========================
+       PWA / ICONS
+  ========================== -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
+
+  <!-- ==========================
+       STYLES
+  ========================== -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-  <!-- MODAL EXERCÍCIO -->
-  <div id="exerciseModal" class="modal">
-    <div class="modal-content">
-      <h3>Adicionar Exercício</h3>
-      <div id="selectedExerciseBox" class="selected-box hidden"></div> <input type="text" id="exerciseSearch"
-        placeholder="Pesquisar exercício..." />
-      <div id="exerciseList" class="modal-list"></div>
-      <h4>Técnica</h4>
-      <div id="selectedTechniqueBox" class="selected-box hidden"></div> <input type="text" id="techniqueSearch"
-        placeholder="Pesquisar técnica..." />
-      <div id="techniqueList" class="modal-list"></div>
-      <div class="modal-actions"> <button id="clearSelection">Limpar</button> <button
-          id="cancelExercise">Cancelar</button> <button id="saveExercise" class="primary">Salvar</button> </div>
-    </div>
-  </div>
+  <!-- ==========================
+       SPLASH SCREEN
+  ========================== -->
   <div id="splashScreen">
     <h1>Fitness Pro</h1>
   </div>
-  <header> <button id="menuToggle">☰</button>
-    <h1>Fitness Training Pro</h1> <button id="themeToggle">🌙</button>
+
+  <!-- ==========================
+       HEADER
+  ========================== -->
+  <header>
+    <button id="menuToggle">☰</button>
+    <h1>Fitness Training Pro</h1>
+    <button id="themeToggle">🌙</button>
   </header>
 
-  <!-- PAINEL LATERAL -->
+  <!-- ==========================
+       ADMIN DRAWER
+  ========================== -->
   <div id="adminDrawer" class="drawer">
     <div class="drawer-content">
-      <h3>Biblioteca</h3> <button id="manageExercises">Exercícios</button> <button
-        id="manageTechniques">Técnicas</button> <button id="closeDrawer">Fechar</button>
+      <h3>Biblioteca</h3>
+      <button id="manageExercises">Exercícios</button>
+      <button id="manageTechniques">Técnicas</button>
+      <button id="closeDrawer">Fechar</button>
     </div>
   </div>
+
+  <!-- ==========================
+       MAIN CONTENT
+  ========================== -->
   <main>
+
+    <!-- DASHBOARD -->
     <section id="dashboard" class="section active">
       <h2>Dashboard</h2>
       <div class="card">
@@ -50,31 +66,112 @@
         <p><strong>Peso Atual:</strong> <span id="currentWeight">-</span> kg</p>
       </div>
     </section>
+
+    <!-- WORKOUTS -->
     <section id="workouts" class="section">
       <h2>Treinos</h2>
-      <div class="card"> <select id="daySelector"></select> </div>
-      <div id="exerciseContainer"></div> <button id="addExerciseBtn" class="primary">Adicionar Exercício</button>
+
+      <div class="card">
+        <select id="daySelector"></select>
+      </div>
+
+      <div id="exerciseContainer"></div>
+
+      <button id="addExerciseBtn" class="primary">
+        Adicionar Exercício
+      </button>
     </section>
+
+    <!-- WEIGHT -->
     <section id="weight" class="section">
       <h2>Peso</h2>
-      <div class="card"> <input type="number" id="weightInput" placeholder="Digite o peso (kg)" /> <button
-          onclick="addWeight()" class="primary">Registrar Peso</button> </div> <canvas id="weightChart"></canvas>
+
+      <div class="card">
+        <input type="number" id="weightInput" placeholder="Digite o peso (kg)" />
+        <button id="addWeightBtn" class="primary">
+          Registrar Peso
+        </button>
+      </div>
+
+      <canvas id="weightChart"></canvas>
     </section>
+
+    <!-- PHOTOS -->
     <section id="photos" class="section">
-      <h2>Fotos</h2> <input type="file" id="photoUpload" />
+      <h2>Fotos</h2>
+      <input type="file" id="photoUpload" />
       <div id="photoGallery"></div>
     </section>
+
   </main>
+
+  <!-- ==========================
+       BOTTOM NAVIGATION
+  ========================== -->
   <nav class="bottom-nav">
-    <div class="nav-indicator"></div> <button data-section="dashboard" class="nav-item active"> <span>Dashboard</span>
-    </button> <button data-section="workouts" class="nav-item"> <span>Treinos</span> </button> <button
-      data-section="weight" class="nav-item"> <span>Peso</span> </button> <button data-section="photos"
-      class="nav-item"> <span>Fotos</span> </button>
+
+    <div class="nav-indicator"></div>
+
+    <button data-section="dashboard" class="nav-item active">
+      <span>Dashboard</span>
+    </button>
+
+    <button data-section="workouts" class="nav-item">
+      <span>Treinos</span>
+    </button>
+
+    <button data-section="weight" class="nav-item">
+      <span>Peso</span>
+    </button>
+
+    <button data-section="photos" class="nav-item">
+      <span>Fotos</span>
+    </button>
+
   </nav>
-  <div id="updateToast" class="update-toast"> <span>Nova versão disponível</span> <button
-      id="updateBtn">Atualizar</button> </div>
+
+  <!-- ==========================
+       UPDATE TOAST
+  ========================== -->
+  <div id="updateToast" class="update-toast">
+    <span>Nova versão disponível</span>
+    <button id="updateBtn">Atualizar</button>
+  </div>
+
+  <!-- ==========================
+       MODAL EXERCÍCIO
+  ========================== -->
+  <div id="exerciseModal" class="modal">
+    <div class="modal-content">
+
+      <h3>Adicionar Exercício</h3>
+
+      <div id="selectedExerciseBox" class="selected-box hidden"></div>
+
+      <input type="text" id="exerciseSearch" placeholder="Pesquisar exercício..." />
+      <div id="exerciseList" class="modal-list"></div>
+
+      <h4>Técnica</h4>
+
+      <div id="selectedTechniqueBox" class="selected-box hidden"></div>
+
+      <input type="text" id="techniqueSearch" placeholder="Pesquisar técnica..." />
+      <div id="techniqueList" class="modal-list"></div>
+
+      <div class="modal-actions">
+        <button id="clearSelection">Limpar</button>
+        <button id="cancelExercise">Cancelar</button>
+        <button id="saveExercise" class="primary">Salvar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================
+       SCRIPTS
+  ========================== -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>
-</body>
 
+</body>
 </html>
