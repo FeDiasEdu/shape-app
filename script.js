@@ -308,11 +308,37 @@ document.addEventListener("DOMContentLoaded", function () {
   renderExercises();
 
   // ==========================
-  // SERVICE WORKER REGISTER
+  // UPDATE SYSTEM
   // ==========================
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-  }
 
-});
+  const updateToast = document.getElementById("updateToast");
+  const updateBtn = document.getElementById("updateBtn");
 
+  let newWorker;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
+  });
+
+  navigator.serviceWorker.register("service-worker.js").then(registration => {
+
+    registration.addEventListener("updatefound", () => {
+
+      newWorker = registration.installing;
+
+      newWorker.addEventListener("statechange", () => {
+        if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+          updateToast.classList.add("show");
+        }
+      });
+
+    });
+
+  });
+
+  updateBtn.addEventListener("click", () => {
+    updateBtn.disabled = true;
+    if (newWorker) {
+      newWorker.postMessage({ type: "SKIP_WAITING" });
+    }
+  });
