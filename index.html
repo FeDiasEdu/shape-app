@@ -67,6 +67,66 @@
       </div>
     </section>
 
+    <!-- NUTRITION -->
+
+    <section id="nutrition" class="section">
+
+      <h2>Nutrição & Indicadores</h2>
+    
+      <!-- PERFIL -->
+      <div class="card">
+        <h3>Perfil</h3>
+    
+        <input type="number" id="heightInput" placeholder="Altura (cm)">
+        <input type="number" id="ageInput" placeholder="Idade">
+    
+        <select id="sexInput">
+          <option value="male">Masculino</option>
+          <option value="female">Feminino</option>
+        </select>
+    
+        <select id="activityInput">
+          <option value="1.2">Sedentário</option>
+          <option value="1.375">Leve</option>
+          <option value="1.55" selected>Moderado</option>
+          <option value="1.725">Intenso</option>
+          <option value="1.9">Muito Intenso</option>
+        </select>
+    
+        <select id="goalInput">
+          <option value="cutting">Cutting</option>
+          <option value="maintenance" selected>Manutenção</option>
+          <option value="bulking">Bulking</option>
+        </select>
+    
+        <button id="saveProfileBtn" class="primary">
+          Salvar Perfil
+        </button>
+      </div>
+  
+      <!-- RESULTADOS -->
+      <div class="card">
+        <h3>Indicadores</h3>
+    
+        <p><strong>IMC:</strong> <span id="bmiResult">-</span></p>
+        <p><strong>Classificação:</strong> <span id="bmiLabel">-</span></p>
+        <p><strong>TMB:</strong> <span id="tmbResult">-</span> kcal</p>
+        <p><strong>TDEE:</strong> <span id="tdeeResult">-</span> kcal</p>
+        <p><strong>Água diária:</strong> <span id="waterResult">-</span> ml</p>
+      </div>
+    
+      <!-- MACROS -->
+      <div class="card">
+        <h3>Macros Sugeridos</h3>
+    
+        <p><strong>Calorias:</strong> <span id="caloriesResult">-</span> kcal</p>
+        <p><strong>Proteína:</strong> <span id="proteinResult">-</span> g</p>
+        <p><strong>Carboidratos:</strong> <span id="carbsResult">-</span> g</p>
+        <p><strong>Gorduras:</strong> <span id="fatsResult">-</span> g</p>
+      </div>
+  
+    </section>
+
     <!-- WORKOUTS -->
     <section id="workouts" class="section">
       <h2>Treinos</h2>
@@ -111,24 +171,29 @@
   <nav class="bottom-nav">
 
     <div class="nav-indicator"></div>
-
-    <button data-section="dashboard" class="nav-item active">
+  
+    <button data-section="dashboard" class="nav-item">
       <span>Dashboard</span>
     </button>
-
-    <button data-section="workouts" class="nav-item">
+  
+    <button data-section="nutrition" class="nav-item">
+      <span>Nutrição</span>
+    </button>
+  
+    <!-- BOTÃO CENTRAL DESTACADO -->
+    <button data-section="workouts" class="nav-item nav-main active">
       <span>Treinos</span>
     </button>
-
+  
     <button data-section="weight" class="nav-item">
       <span>Peso</span>
     </button>
-
+  
     <button data-section="photos" class="nav-item">
       <span>Fotos</span>
     </button>
 
-  </nav>
+</nav>
 
   <!-- ==========================
        UPDATE TOAST
@@ -175,3 +240,4 @@
 
 </body>
 </html>
+
