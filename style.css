@@ -104,3 +104,19 @@ button.primary:hover {
 #photoGallery img:hover {
   transform: scale(1.05);
 }
+
+.comparison {
+  margin-top: 20px;
+}
+
+.compareBox {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.compareBox img {
+  width: 45%;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
