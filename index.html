@@ -9,47 +9,30 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
+
+  <!-- SPLASH SCREEN -->
+  <link rel="apple-touch-startup-image" href="icons/icon-512.png">
 </head>
 
 <body>
+
+<!-- SPLASH -->
+<div id="splashScreen">
+  <h1>Fitness Pro</h1>
+</div>
 
 <header>
   <h1>Fitness Training Pro</h1>
   <button id="themeToggle">🌙</button>
 </header>
 
-<nav>
-  <button data-section="dashboard">Dashboard</button>
-  <button data-section="workouts">Treinos</button>
-  <button data-section="weight">Peso</button>
-  <button data-section="photos">Fotos</button>
-</nav>
+<!-- CONTEÚDO -->
+<main>
 
 <section id="dashboard" class="section active">
   <h2>Dashboard</h2>
-
   <div class="card">
     <p><strong>Peso Atual:</strong> <span id="currentWeight">-</span> kg</p>
-  </div>
-
-  <div class="card">
-    <p><strong>Volume Total:</strong> <span id="weeklyVolume">-</span></p>
-  </div>
-
-  <div class="card">
-    <p><strong>Total de Treinos:</strong> <span id="weeklyWorkouts">-</span></p>
-  </div>
-
-  <div class="card">
-    <p><strong>Maior PR:</strong> <span id="bestPR">-</span></p>
-  </div>
-
-  <!-- 🔥 BACKUP -->
-  <div class="card">
-    <h3>Backup & Restore</h3>
-    <button onclick="exportBackup()" class="primary">Exportar Backup</button>
-    <input type="file" id="importFile" style="margin-top:10px;">
-    <button onclick="importBackup()" style="margin-top:10px;">Importar Backup</button>
   </div>
 </section>
 
@@ -58,12 +41,11 @@
   <select id="daySelector"></select>
   <div id="exerciseList"></div>
   <button onclick="finishWorkout()" class="primary">Finalizar Treino</button>
-  <h3>Histórico</h3>
   <ul id="workoutHistory"></ul>
 </section>
 
 <section id="weight" class="section">
-  <h2>Controle de Peso</h2>
+  <h2>Peso</h2>
   <input type="number" id="weightInput" placeholder="Digite o peso" />
   <button onclick="addWeight()">Registrar</button>
   <canvas id="weightChart"></canvas>
@@ -71,11 +53,31 @@
 
 <section id="photos" class="section">
   <h2>Fotos</h2>
-  <div class="card">
-    <input type="file" id="photoUpload" />
-  </div>
+  <input type="file" id="photoUpload" />
   <div id="photoGallery"></div>
 </section>
+
+</main>
+
+<!-- NAVBAR FIXA -->
+<nav class="bottom-nav">
+  <button data-section="dashboard" class="nav-item active">
+    <img src="icons/nav-dashboard.png">
+    <span>Dashboard</span>
+  </button>
+  <button data-section="workouts" class="nav-item">
+    <img src="icons/nav-workout.png">
+    <span>Treinos</span>
+  </button>
+  <button data-section="weight" class="nav-item">
+    <img src="icons/nav-weight.png">
+    <span>Peso</span>
+  </button>
+  <button data-section="photos" class="nav-item">
+    <img src="icons/nav-photos.png">
+    <span>Fotos</span>
+  </button>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js"></script>
