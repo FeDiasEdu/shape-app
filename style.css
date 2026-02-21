@@ -403,3 +403,8 @@ header {
   display: flex;
   justify-content: space-between;
 }
+
+.modal-list div.selected {
+  background: rgba(0,255,136,0.25);
+  border-left: 4px solid #00ff88;
+}
