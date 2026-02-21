@@ -1,24 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   // ==========================
-  // SERVICE WORKER COM ATIVAÇÃO IMEDIATA
+  // SERVICE WORKER
   // ==========================
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js")
-      .then(reg => {
-        console.log("Service Worker registrado");
-
-        reg.addEventListener("updatefound", () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              console.log("Nova versão disponível");
-              window.location.reload();
-            }
-          });
-        });
-      })
-      .catch(err => console.log("Erro SW:", err));
+    navigator.serviceWorker.register("service-worker.js");
   }
 
   // ==========================
@@ -35,15 +21,69 @@ document.addEventListener("DOMContentLoaded", function () {
       workouts: {},
       history: [],
       weights: [],
-      settings: {
-        theme: "dark"
-      }
+      settings: { theme: "dark" }
     };
   }
 
   function saveState() {
     localStorage.setItem("fitnessAppState", JSON.stringify(appState));
   }
+
+  // ==========================
+  // BACKUP EXPORT
+  // ==========================
+  window.exportBackup = function () {
+
+    const dataStr = JSON.stringify(appState, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = `fitness-backup-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  // ==========================
+  // BACKUP IMPORT
+  // ==========================
+  window.importBackup = function () {
+
+    const fileInput = document.getElementById("importFile");
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert("Selecione um arquivo.");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      try {
+        const importedData = JSON.parse(e.target.result);
+
+        if (!importedData.version) {
+          alert("Arquivo inválido.");
+          return;
+        }
+
+        appState = importedData;
+        saveState();
+
+        alert("Backup restaurado com sucesso!");
+        location.reload();
+
+      } catch (err) {
+        alert("Erro ao importar arquivo.");
+      }
+    };
+
+    reader.readAsText(file);
+  };
 
   // ==========================
   // ELEMENTOS
@@ -55,17 +95,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const weightChartCanvas = document.getElementById("weightChart");
 
   let weightChartInstance = null;
-
-  // ==========================
-  // NAVEGAÇÃO
-  // ==========================
-  document.querySelectorAll("nav button").forEach(btn => {
-    btn.addEventListener("click", function () {
-      const id = this.dataset.section;
-      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
-      document.getElementById(id)?.classList.add("active");
-    });
-  });
 
   // ==========================
   // TEMA
@@ -112,24 +141,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  exerciseList.addEventListener("click", function(e){
-    if(e.target.classList.contains("addSerieBtn")){
-      const container = e.target.parentElement.querySelector(".seriesContainer");
-      const div = document.createElement("div");
-      div.className = "serie";
-      div.innerHTML = `
-        <input type="number" placeholder="Peso">
-        <input type="number" placeholder="Reps">
-        <button class="removeSerie">X</button>
-      `;
-      container.appendChild(div);
-    }
-
-    if(e.target.classList.contains("removeSerie")){
-      e.target.parentElement.remove();
-    }
-  });
-
   window.finishWorkout = function () {
     const date = new Date().toISOString().split("T")[0];
     const day = selector.value;
@@ -137,27 +148,11 @@ document.addEventListener("DOMContentLoaded", function () {
     appState.workouts[date] = appState.workouts[date] || {};
     appState.workouts[date][day] = {};
 
-    document.querySelectorAll("#exerciseList .card").forEach(card => {
-      const exName = card.querySelector("h3").textContent;
-      const series = [];
-
-      card.querySelectorAll(".serie").forEach(s => {
-        const peso = Number(s.children[0].value);
-        const reps = Number(s.children[1].value);
-        if (peso && reps) series.push({ peso, reps });
-      });
-
-      if (series.length > 0) {
-        const pr = Math.max(...series.map(s => s.peso));
-        appState.workouts[date][day][exName] = { series, pr };
-      }
-    });
-
     appState.history.push(`${date} – ${day}`);
     saveState();
+
     renderHistory();
     updateDashboard();
-
     alert("Treino salvo 🚀");
   };
 
@@ -171,31 +166,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateDashboard() {
-    let weeklyVolume = 0;
-    let weeklyWorkouts = 0;
-    let bestPR = 0;
-
-    Object.keys(appState.workouts).forEach(date => {
-      weeklyWorkouts++;
-
-      Object.values(appState.workouts[date]).forEach(day => {
-        Object.values(day).forEach(ex => {
-          ex.series.forEach(s => {
-            weeklyVolume += s.peso * s.reps;
-          });
-          if (ex.pr > bestPR) bestPR = ex.pr;
-        });
-      });
-    });
-
-    document.getElementById("weeklyVolume").textContent =
-      weeklyVolume ? weeklyVolume + " kg" : "-";
-
     document.getElementById("weeklyWorkouts").textContent =
-      weeklyWorkouts || "-";
-
-    document.getElementById("bestPR").textContent =
-      bestPR ? bestPR + " kg" : "-";
+      Object.keys(appState.workouts).length || "-";
   }
 
   window.addWeight = function() {
@@ -212,6 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function renderChart() {
     if (!weightChartCanvas) return;
+
     if (weightChartInstance) weightChartInstance.destroy();
 
     weightChartInstance = new Chart(weightChartCanvas, {
