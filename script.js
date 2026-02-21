@@ -835,3 +835,40 @@ document.addEventListener("DOMContentLoaded", function () {
   renderPhotos();
 
 });
+
+// ==========================
+// SERVICE WORKER REGISTER
+// ==========================
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(reg => {
+        console.log("Service Worker registrado:", reg.scope);
+
+        reg.onupdatefound = () => {
+          const newWorker = reg.installing;
+
+          newWorker.onstatechange = () => {
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              const toast = document.getElementById("updateToast");
+              const updateBtn = document.getElementById("updateBtn");
+
+              if (toast) toast.classList.add("show");
+
+              if (updateBtn) {
+                updateBtn.onclick = () => {
+                  newWorker.postMessage({ type: "SKIP_WAITING" });
+                };
+              }
+            }
+          };
+        };
+      })
+      .catch(err => console.error("Erro ao registrar SW:", err));
+  });
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
+  });
+}
