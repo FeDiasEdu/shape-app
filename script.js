@@ -1,54 +1,52 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   // ==========================
-  // DADOS BASE
+  // APP STATE (BASE ESTRUTURAL)
   // ==========================
-  const workoutsData = {
-    "Dia 1 – Peito + Tríceps": [
-      "Supino Inclinado Halteres",
-      "Chest Press",
-      "Crossover Baixo → Alto",
-      "Crucifixo Máquina",
-      "Tríceps Corda",
-      "Tríceps Testa"
-    ],
-    "Dia 2 – Costas + Bíceps": [
-      "Puxada Neutra",
-      "Remada Cabo",
-      "Pulldown",
-      "Rosca Scott",
-      "Rosca Martelo"
-    ],
-    "Dia 3 – Posterior": [
-      "Stiff",
-      "Flexora Deitada",
-      "Flexora Unilateral",
-      "Glute Bridge"
-    ],
-    "Dia 4 – Ombro": [
-      "Elevação Lateral",
-      "Elevação Cabo",
-      "Crucifixo Invertido",
-      "Desenvolvimento Halteres"
-    ],
-    "Dia 5 – Perna": [
-      "Agachamento Smith",
-      "Leg Press",
-      "Extensora",
-      "Panturrilha"
-    ]
-  };
+  let appState = loadState();
 
+  function loadState() {
+    const saved = localStorage.getItem("fitnessAppState");
+    if (saved) return JSON.parse(saved);
+
+    return {
+      version: 1,
+      workouts: {},
+      history: [],
+      weights: [],
+      photos: [],
+      settings: {
+        theme: "dark",
+        phase: "cut"
+      }
+    };
+  }
+
+  function saveState() {
+    localStorage.setItem("fitnessAppState", JSON.stringify(appState));
+  }
+
+  // ==========================
+  // ELEMENTOS
+  // ==========================
   const selector = document.getElementById("daySelector");
   const exerciseList = document.getElementById("exerciseList");
   const historyList = document.getElementById("workoutHistory");
-
-  let history = JSON.parse(localStorage.getItem("history")) || [];
-  let workoutData = JSON.parse(localStorage.getItem("workoutData")) || {};
-  let weightData = JSON.parse(localStorage.getItem("weightData")) || [];
-  let photoData = JSON.parse(localStorage.getItem("photoData")) || [];
+  const weightInput = document.getElementById("weightInput");
+  const weightChartCanvas = document.getElementById("weightChart");
 
   let weightChartInstance = null;
+
+  // ==========================
+  // TREINOS BASE
+  // ==========================
+  const workoutsData = {
+    "Dia 1 – Peito + Tríceps": ["Supino Inclinado Halteres","Chest Press","Crossover Baixo → Alto","Crucifixo Máquina","Tríceps Corda","Tríceps Testa"],
+    "Dia 2 – Costas + Bíceps": ["Puxada Neutra","Remada Cabo","Pulldown","Rosca Scott","Rosca Martelo"],
+    "Dia 3 – Posterior": ["Stiff","Flexora Deitada","Flexora Unilateral","Glute Bridge"],
+    "Dia 4 – Ombro": ["Elevação Lateral","Elevação Cabo","Crucifixo Invertido","Desenvolvimento Halteres"],
+    "Dia 5 – Perna": ["Agachamento Smith","Leg Press","Extensora","Panturrilha"]
+  };
 
   // ==========================
   // NAVEGAÇÃO
@@ -56,24 +54,23 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll("nav button").forEach(btn => {
     btn.addEventListener("click", function () {
       const id = this.dataset.section;
-
-      document.querySelectorAll(".section").forEach(sec => {
-        sec.classList.remove("active");
-      });
-
+      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
       document.getElementById(id)?.classList.add("active");
     });
   });
 
   // ==========================
-  // TEMA DARK
+  // TEMA
   // ==========================
-  const themeToggle = document.getElementById("themeToggle");
-  if (themeToggle) {
-    themeToggle.addEventListener("click", function () {
-      document.body.classList.toggle("dark");
-    });
+  if (appState.settings.theme === "dark") {
+    document.body.classList.add("dark");
   }
+
+  document.getElementById("themeToggle")?.addEventListener("click", function () {
+    document.body.classList.toggle("dark");
+    appState.settings.theme = document.body.classList.contains("dark") ? "dark" : "light";
+    saveState();
+  });
 
   // ==========================
   // SELECT TREINO
@@ -87,7 +84,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function renderExercises() {
     exerciseList.innerHTML = "";
-
     workoutsData[selector.value].forEach(ex => {
       const div = document.createElement("div");
       div.className = "card";
@@ -100,14 +96,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ==========================
-  // SÉRIES DINÂMICAS
-  // ==========================
   exerciseList.addEventListener("click", function(e){
-
     if(e.target.classList.contains("addSerieBtn")){
       const container = e.target.parentElement.querySelector(".seriesContainer");
-
       const div = document.createElement("div");
       div.className = "serie";
       div.innerHTML = `
@@ -115,7 +106,6 @@ document.addEventListener("DOMContentLoaded", function () {
         <input type="number" placeholder="Reps">
         <button class="removeSerie">X</button>
       `;
-
       container.appendChild(div);
     }
 
@@ -131,10 +121,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const date = new Date().toISOString().split("T")[0];
     const day = selector.value;
-    let totalVolume = 0;
 
-    workoutData[date] = workoutData[date] || {};
-    workoutData[date][day] = {};
+    appState.workouts[date] = appState.workouts[date] || {};
+    appState.workouts[date][day] = {};
 
     document.querySelectorAll("#exerciseList .card").forEach(card => {
 
@@ -147,22 +136,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (peso && reps) {
           series.push({ peso, reps });
-          totalVolume += peso * reps;
         }
       });
 
       if (series.length > 0) {
         const pr = Math.max(...series.map(s => s.peso));
-        workoutData[date][day][exName] = { series, pr };
+        appState.workouts[date][day][exName] = { series, pr };
       }
 
     });
 
-    history.push(`${date} – ${day}`);
+    appState.history.push(`${date} – ${day}`);
 
-    localStorage.setItem("history", JSON.stringify(history));
-    localStorage.setItem("workoutData", JSON.stringify(workoutData));
-
+    saveState();
     renderHistory();
     updateDashboard();
 
@@ -174,7 +160,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // ==========================
   function renderHistory() {
     historyList.innerHTML = "";
-    history.forEach(h => {
+    appState.history.forEach(h => {
       const li = document.createElement("li");
       li.textContent = h;
       historyList.appendChild(li);
@@ -193,7 +179,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let weeklyWorkouts = 0;
     let bestPR = 0;
 
-    Object.keys(workoutData).forEach(date => {
+    Object.keys(appState.workouts).forEach(date => {
 
       const d = new Date(date);
       const week = getWeekNumber(d);
@@ -202,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         weeklyWorkouts++;
 
-        Object.values(workoutData[date]).forEach(day => {
+        Object.values(appState.workouts[date]).forEach(day => {
           Object.values(day).forEach(ex => {
 
             ex.series.forEach(s => {
@@ -233,120 +219,41 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ==========================
-  // PESO + GRÁFICO
+  // PESO
   // ==========================
   window.addWeight = function() {
 
-    const weight = Number(document.getElementById("weightInput").value);
+    const weight = Number(weightInput.value);
     if (!weight) return;
 
     const date = new Date().toLocaleDateString();
 
-    weightData.push({ date, weight });
-    localStorage.setItem("weightData", JSON.stringify(weightData));
+    appState.weights.push({ date, weight });
+    saveState();
 
     document.getElementById("currentWeight").textContent = weight;
-
     renderChart();
   };
 
   function renderChart() {
 
-    const ctx = document.getElementById("weightChart");
-    if (!ctx) return;
+    if (!weightChartCanvas) return;
 
-    if (weightChartInstance) {
-      weightChartInstance.destroy();
-    }
+    if (weightChartInstance) weightChartInstance.destroy();
 
-    weightChartInstance = new Chart(ctx, {
+    weightChartInstance = new Chart(weightChartCanvas, {
       type: "line",
       data: {
-        labels: weightData.map(w => w.date),
+        labels: appState.weights.map(w => w.date),
         datasets: [{
           label: "Peso",
-          data: weightData.map(w => w.weight),
+          data: appState.weights.map(w => w.weight),
           borderColor: "#00ff88",
           tension: 0.3
         }]
       }
     });
   }
-
-  // ==========================
-  // FOTOS
-  // ==========================
-  const photoUpload = document.getElementById("photoUpload");
-  const photoGallery = document.getElementById("photoGallery");
-  const photoSelect1 = document.getElementById("photoSelect1");
-  const photoSelect2 = document.getElementById("photoSelect2");
-
-  if (photoUpload) {
-    photoUpload.addEventListener("change", function () {
-
-      const file = this.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-
-        const date = new Date().toISOString().split("T")[0];
-
-        photoData.push({
-          date,
-          image: e.target.result
-        });
-
-        localStorage.setItem("photoData", JSON.stringify(photoData));
-        renderPhotos();
-      };
-
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function renderPhotos() {
-
-    if (!photoGallery) return;
-
-    photoGallery.innerHTML = "";
-    photoSelect1.innerHTML = "";
-    photoSelect2.innerHTML = "";
-
-    photoData.forEach((p, index) => {
-
-      const img = document.createElement("img");
-      img.src = p.image;
-      photoGallery.appendChild(img);
-
-      const opt1 = document.createElement("option");
-      opt1.value = index;
-      opt1.textContent = p.date;
-      photoSelect1.appendChild(opt1);
-
-      const opt2 = document.createElement("option");
-      opt2.value = index;
-      opt2.textContent = p.date;
-      photoSelect2.appendChild(opt2);
-    });
-  }
-
-  window.comparePhotos = function () {
-
-    const i1 = photoSelect1.value;
-    const i2 = photoSelect2.value;
-
-    if (i1 === i2) return;
-
-    const container = document.getElementById("comparisonContainer");
-
-    container.innerHTML = `
-      <div class="compareBox">
-        <img src="${photoData[i1].image}">
-        <img src="${photoData[i2].image}">
-      </div>
-    `;
-  };
 
   // ==========================
   // INIT
@@ -357,6 +264,5 @@ document.addEventListener("DOMContentLoaded", function () {
   renderHistory();
   renderChart();
   updateDashboard();
-  renderPhotos();
 
 });
