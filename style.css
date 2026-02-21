@@ -408,3 +408,21 @@ header {
   background: rgba(0,255,136,0.25);
   border-left: 4px solid #00ff88;
 }
+
+.selected-box {
+  background: rgba(0,255,136,0.15);
+  border: 1px solid #00ff88;
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.hidden {
+  display: none;
+}
+
+.modal-list div.selected {
+  background: rgba(0,255,136,0.25);
+  border-left: 4px solid #00ff88;
+}
