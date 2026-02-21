@@ -1,114 +1,145 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  let newWorker = null;
-  let refreshing = false;
-
   // ==========================
-  // SERVICE WORKER + UPDATE
+  // INITIAL STATE
   // ==========================
-  if ("serviceWorker" in navigator) {
+  let appState = loadState();
 
-    navigator.serviceWorker.register("service-worker.js")
-      .then(registration => {
+  function loadState() {
+    const saved = localStorage.getItem("fitnessAppState");
+    if (saved) return JSON.parse(saved);
 
-        if (registration.waiting) {
-          newWorker = registration.waiting;
-          showUpdateToast();
-        }
-
-        registration.addEventListener("updatefound", () => {
-          const installingWorker = registration.installing;
-
-          installingWorker.addEventListener("statechange", () => {
-            if (
-              installingWorker.state === "installed" &&
-              navigator.serviceWorker.controller
-            ) {
-              newWorker = installingWorker;
-              showUpdateToast();
-            }
-          });
-        });
-      });
-
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    });
-  }
-
-  function showUpdateToast() {
-    const toast = document.getElementById("updateToast");
-    const btn = document.getElementById("updateBtn");
-
-    if (!toast || !btn) return;
-
-    toast.classList.add("show");
-
-    btn.onclick = () => {
-
-      if (!newWorker) return;
-
-      btn.textContent = "Atualizando...";
-      btn.disabled = true;
-
-      // envia mensagem
-      newWorker.postMessage({ type: "SKIP_WAITING" });
-
-      // fallback se controllerchange não disparar
-      setTimeout(() => {
-        if (!refreshing) {
-          window.location.reload();
-        }
-      }, 1500);
+    return {
+      version: 2,
+      library: {
+        exercises: [
+          "Supino Reto","Supino Inclinado","Supino Declinado","Crucifixo",
+          "Cross Over","Peck Deck","Puxada Frente","Remada Curvada",
+          "Barra Fixa","Desenvolvimento","Elevação Lateral",
+          "Rosca Direta","Rosca Scott","Rosca Martelo",
+          "Tríceps Corda","Tríceps Testa",
+          "Agachamento","Leg Press","Stiff","Levantamento Terra",
+          "Panturrilha em Pé","Panturrilha Sentado"
+        ],
+        techniques: [
+          "Drop Set","Rest Pause","Bi-set","Tri-set","FST-7",
+          "Cluster","Pirâmide Crescente","Pirâmide Decrescente",
+          "Negativa","Isometria","Tempo Controlado",
+          "Série Forçada","GVT"
+        ]
+      },
+      workouts: {},
+      weights: [],
+      settings: { theme: "dark" }
     };
   }
 
+  function saveState() {
+    localStorage.setItem("fitnessAppState", JSON.stringify(appState));
+  }
+
   // ==========================
-  // SPLASH
+  // DRAWER
   // ==========================
-  setTimeout(() => {
-    const splash = document.getElementById("splashScreen");
-    if (splash) splash.style.display = "none";
-  }, 1200);
+  const drawer = document.getElementById("adminDrawer");
+  document.getElementById("menuToggle").onclick = () => {
+    drawer.classList.add("open");
+  };
+  document.getElementById("closeDrawer").onclick = () => {
+    drawer.classList.remove("open");
+  };
+
+  // ==========================
+  // DAY SELECTOR
+  // ==========================
+  const daySelector = document.getElementById("daySelector");
+  const days = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+
+  days.forEach(day => {
+    const option = document.createElement("option");
+    option.value = day;
+    option.textContent = day;
+    daySelector.appendChild(option);
+  });
+
+  daySelector.addEventListener("change", renderExercises);
+
+  // ==========================
+  // RENDER EXERCISES
+  // ==========================
+  function renderExercises() {
+    const container = document.getElementById("exerciseContainer");
+    container.innerHTML = "";
+
+    const selectedDay = daySelector.value;
+
+    if (!appState.workouts[selectedDay]) {
+      appState.workouts[selectedDay] = [];
+    }
+
+    appState.workouts[selectedDay].forEach((item, index) => {
+      const div = document.createElement("div");
+      div.className = "exercise-item";
+      div.innerHTML = `
+        <div>
+          <strong>${item.exercise}</strong>
+          <br>
+          <small>${item.technique || "Sem técnica"}</small>
+        </div>
+        <button data-index="${index}">Remover</button>
+      `;
+      container.appendChild(div);
+    });
+
+    container.querySelectorAll("button").forEach(btn => {
+      btn.onclick = function () {
+        appState.workouts[selectedDay].splice(this.dataset.index,1);
+        saveState();
+        renderExercises();
+      };
+    });
+  }
+
+  // ==========================
+  // ADD EXERCISE
+  // ==========================
+  document.getElementById("addExerciseBtn").onclick = function () {
+
+    const exercise = prompt("Digite o nome do exercício ou escolha da biblioteca:");
+    if (!exercise) return;
+
+    const technique = prompt("Digite a técnica (opcional):");
+
+    const day = daySelector.value;
+
+    if (!appState.workouts[day]) {
+      appState.workouts[day] = [];
+    }
+
+    appState.workouts[day].push({
+      exercise,
+      technique
+    });
+
+    saveState();
+    renderExercises();
+  };
 
   // ==========================
   // NAVBAR
   // ==========================
   const navItems = document.querySelectorAll(".nav-item");
   const sections = document.querySelectorAll(".section");
-  const indicator = document.querySelector(".nav-indicator");
-
-  function moveIndicator(element) {
-    if (!indicator) return;
-    indicator.style.width = element.offsetWidth + "px";
-    indicator.style.left = element.offsetLeft + "px";
-  }
 
   navItems.forEach(btn => {
     btn.addEventListener("click", function () {
-
       sections.forEach(sec => sec.classList.remove("active"));
       navItems.forEach(n => n.classList.remove("active"));
-
-      const target = document.getElementById(this.dataset.section);
-      if (target) target.classList.add("active");
-
+      document.getElementById(this.dataset.section).classList.add("active");
       this.classList.add("active");
-      moveIndicator(this);
     });
   });
 
-  window.addEventListener("load", () => {
-    const active = document.querySelector(".nav-item.active");
-    if (active) moveIndicator(active);
-  });
-
-  window.addEventListener("resize", () => {
-    const active = document.querySelector(".nav-item.active");
-    if (active) moveIndicator(active);
-  });
+  renderExercises();
 
 });
