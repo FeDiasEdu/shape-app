@@ -119,8 +119,38 @@
 
 </nav>
 
+<!-- ==========================
+      MODAL EXERCÍCIO
+========================== -->
+<div id="exerciseModal" class="modal">
+  <div class="modal-content">
+
+    <h3>Adicionar Exercício</h3>
+
+    <div id="selectedExerciseBox" class="selected-box hidden"></div>
+
+    <input type="text" id="exerciseSearch" placeholder="Pesquisar exercício..." />
+    <div id="exerciseList" class="modal-list"></div>
+
+    <h4>Técnica</h4>
+
+    <div id="selectedTechniqueBox" class="selected-box hidden"></div>
+
+    <input type="text" id="techniqueSearch" placeholder="Pesquisar técnica..." />
+    <div id="techniqueList" class="modal-list"></div>
+
+    <div class="modal-actions">
+      <button id="clearSelection">Limpar</button>
+      <button id="cancelExercise">Cancelar</button>
+      <button id="saveExercise" class="primary">Salvar</button>
+    </div>
+
+  </div>
+</div>  
+  
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js"></script>
 
 </body>
 </html>
+
