@@ -430,3 +430,13 @@ select option {
   background: #1a1a1a;
   color: white;
 }
+
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.nav-indicator {
+  display: none;
+}
