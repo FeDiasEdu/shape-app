@@ -113,6 +113,28 @@ const techniqueSearch = document.getElementById("techniqueSearch");
 
 let selectedExercise = null;
 let selectedTechnique = null;
+
+// ABRIR MODAL
+document.getElementById("addExerciseBtn").onclick = function () {
+  selectedExercise = null;
+  selectedTechnique = null;
+
+  updateSelectedExerciseBox();
+  updateSelectedTechniqueBox();
+
+  exerciseSearch.value = "";
+  techniqueSearch.value = "";
+
+  renderExerciseOptions();
+  renderTechniqueOptions();
+
+  modal.classList.add("show");
+};
+
+// FECHAR MODAL
+document.getElementById("cancelExercise").onclick = function () {
+  modal.classList.remove("show");
+};
   
 const selectedExerciseBox = document.getElementById("selectedExerciseBox");
 const selectedTechniqueBox = document.getElementById("selectedTechniqueBox");
@@ -231,6 +253,7 @@ document.getElementById("clearSelection").onclick = function () {
   renderExercises();
 
 });
+
 
 
 
