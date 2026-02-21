@@ -1,7 +1,7 @@
 // ==========================
 // VERSIONAMENTO
 // ==========================
-const APP_VERSION = "v1.5";
+const APP_VERSION = "v1.6";
 const CACHE_NAME = `fitness-app-${APP_VERSION}`;
 
 // ==========================
