@@ -1,7 +1,7 @@
 // ==========================
 // VERSIONAMENTO
 // ==========================
-const APP_VERSION = "v6";
+const APP_VERSION = "v7";
 const CACHE_NAME = `fitness-app-${APP_VERSION}`;
 
 // ==========================
@@ -22,9 +22,6 @@ const urlsToCache = [
 // INSTALL
 // ==========================
 self.addEventListener("install", event => {
-
-  self.skipWaiting(); // 🔥 ativa imediatamente
-
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
@@ -35,7 +32,6 @@ self.addEventListener("install", event => {
 // ACTIVATE
 // ==========================
 self.addEventListener("activate", event => {
-
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -47,27 +43,30 @@ self.addEventListener("activate", event => {
       );
     })
   );
-
-  return self.clients.claim(); // 🔥 assume controle imediato
+  return self.clients.claim();
 });
 
 // ==========================
 // FETCH (NETWORK FIRST)
 // ==========================
 self.addEventListener("fetch", event => {
-
   event.respondWith(
     fetch(event.request)
       .then(response => {
-
-        const responseClone = response.clone();
-
+        const clone = response.clone();
         caches.open(CACHE_NAME)
-          .then(cache => cache.put(event.request, responseClone));
-
+          .then(cache => cache.put(event.request, clone));
         return response;
       })
       .catch(() => caches.match(event.request))
   );
+});
 
+// ==========================
+// SKIP WAITING VIA MESSAGE
+// ==========================
+self.addEventListener("message", event => {
+  if (event.data === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
