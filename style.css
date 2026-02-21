@@ -1,80 +1,15 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-body {
-  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color: white;
-  min-height: 100vh;
-  padding-bottom: 80px;
-}
-
-/* SPLASH */
-#splashScreen {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg,#00ff88,#00cc6a);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  font-size: 28px;
-  font-weight: bold;
-  animation: fadeSplash 1.2s forwards;
-}
-
-@keyframes fadeSplash {
-  0% { opacity:1; }
-  80% { opacity:1; }
-  100% { opacity:0; visibility:hidden; }
-}
-
-/* HEADER */
-header {
-  padding: 20px;
-  text-align: center;
-}
-
-/* SECTIONS */
-.section {
-  display: none;
-  padding: 20px;
-  animation: slideFade 0.3s ease;
-}
-
-.section.active {
-  display: block;
-}
-
-@keyframes slideFade {
-  from { opacity:0; transform:translateX(10px); }
-  to { opacity:1; transform:translateX(0); }
-}
-
-/* CARD */
-.card {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 15px;
-}
-
-/* NAVBAR */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   width: 100%;
   height: 70px;
   background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
   display: flex;
   justify-content: space-around;
   align-items: center;
   border-top: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
 }
 
 .nav-item {
@@ -86,34 +21,35 @@ header {
   align-items: center;
   font-size: 12px;
   cursor: pointer;
-  transition: 0.3s;
-}
-
-.nav-item img {
-  width: 22px;
-  margin-bottom: 3px;
-  opacity: 0.6;
-}
-
-.nav-item.active {
-  color: #00ff88;
-}
-
-.nav-item.active img {
-  opacity: 1;
-  transform: scale(1.1);
+  transition: 0.3s ease;
+  position: relative;
+  z-index: 2;
 }
 
 .nav-item svg {
   width: 22px;
   height: 22px;
   margin-bottom: 3px;
-}
-
-.nav-item {
-  color: #aaa;
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
 
 .nav-item.active {
   color: #00ff88;
+  transform: translateY(-4px);
+}
+
+.nav-item.active svg {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 6px #00ff88);
+}
+
+.nav-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 4px;
+  background: #00ff88;
+  border-radius: 4px 4px 0 0;
+  transition: transform 0.35s cubic-bezier(.68,-0.55,.27,1.55),
+              width 0.35s ease;
+  z-index: 1;
 }
