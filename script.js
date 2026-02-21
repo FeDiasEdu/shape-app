@@ -149,17 +149,35 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // ==========================
+  // ÍCONES DA NAVBAR (LIGHT/DARK)
+  // ==========================
+  function updateNavIcons() {
+    const theme = appState.settings.theme; // "dark" | "light"
+
+    document.querySelectorAll("[data-icon]").forEach(img => {
+      const iconName = img.dataset.icon; // dashboard | workout | weight | photos
+      img.src = `icons/nav-${iconName}-${theme}.png`;
+    });
+  }
+
+  // ==========================
   // TEMA
   // ==========================
   if (appState.settings.theme === "dark") {
     document.body.classList.add("dark");
   }
 
+  // aplica ícones no carregamento inicial
+  updateNavIcons();
+
   document.getElementById("themeToggle")?.addEventListener("click", function () {
     document.body.classList.toggle("dark");
     appState.settings.theme =
       document.body.classList.contains("dark") ? "dark" : "light";
     saveState();
+
+    // atualiza ícones após mudança de tema
+    updateNavIcons();
   });
 
   // ==========================
