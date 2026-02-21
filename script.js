@@ -307,4 +307,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   renderExercises();
 
+  // ==========================
+  // SERVICE WORKER REGISTER
+  // ==========================
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+
 });
+
