@@ -103,3 +103,17 @@ header {
   opacity: 1;
   transform: scale(1.1);
 }
+
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+  margin-bottom: 3px;
+}
+
+.nav-item {
+  color: #aaa;
+}
+
+.nav-item.active {
+  color: #00ff88;
+}
