@@ -353,3 +353,53 @@ header {
 .exercise-item small {
   opacity: 0.7;
 }
+
+/* ==========================
+   MODAL
+========================== */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 400px;
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 20px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-list {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+}
+
+.modal-list div {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.modal-list div:hover {
+  background: rgba(0,255,136,0.2);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+}
