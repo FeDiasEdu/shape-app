@@ -104,6 +104,16 @@ document.addEventListener("DOMContentLoaded", function () {
 // ADD EXERCISE MODAL
 // ==========================
 
+// ELEMENTOS DO MODAL
+const modal = document.getElementById("exerciseModal");
+const exerciseListEl = document.getElementById("exerciseList");
+const techniqueListEl = document.getElementById("techniqueList");
+const exerciseSearch = document.getElementById("exerciseSearch");
+const techniqueSearch = document.getElementById("techniqueSearch");
+
+let selectedExercise = null;
+let selectedTechnique = null;
+  
 const selectedExerciseBox = document.getElementById("selectedExerciseBox");
 const selectedTechniqueBox = document.getElementById("selectedTechniqueBox");
 
@@ -221,6 +231,7 @@ document.getElementById("clearSelection").onclick = function () {
   renderExercises();
 
 });
+
 
 
 
