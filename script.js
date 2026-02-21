@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   let refreshing = false;
+  let newWorker = null;
 
   // ==========================
   // SERVICE WORKER + UPDATE
@@ -9,24 +10,27 @@ document.addEventListener("DOMContentLoaded", function () {
     navigator.serviceWorker.register("service-worker.js")
       .then(registration => {
 
-        // Se já existe um SW esperando
+        // Caso já exista um worker esperando
         if (registration.waiting) {
-          showUpdateToast(registration);
+          newWorker = registration.waiting;
+          showUpdateToast();
         }
 
-        // Quando encontra nova versão
         registration.addEventListener("updatefound", () => {
-          const newWorker = registration.installing;
+          const installingWorker = registration.installing;
 
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              showUpdateToast(registration);
+          installingWorker.addEventListener("statechange", () => {
+            if (
+              installingWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              newWorker = installingWorker;
+              showUpdateToast();
             }
           });
         });
       });
 
-    // Quando novo SW assume controle
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       if (!refreshing) {
         refreshing = true;
@@ -35,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function showUpdateToast(registration) {
+  function showUpdateToast() {
     const toast = document.getElementById("updateToast");
     const btn = document.getElementById("updateBtn");
 
@@ -44,9 +48,9 @@ document.addEventListener("DOMContentLoaded", function () {
     toast.classList.add("show");
 
     btn.onclick = () => {
-      registration.waiting.postMessage({
-        type: "SKIP_WAITING"
-      });
+      if (newWorker) {
+        newWorker.postMessage({ type: "SKIP_WAITING" });
+      }
     };
   }
 
