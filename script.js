@@ -1,13 +1,11 @@
-window.showSection = function (id) {
-  document.querySelectorAll(".section").forEach(sec => {
-    sec.classList.remove("active");
-  });
-  const el = document.getElementById(id);
-  if (el) el.classList.add("active");
-};
-
+// ==========================
+// DOM READY
+// ==========================
 document.addEventListener("DOMContentLoaded", function () {
 
+  // ==========================
+  // DADOS BASE
+  // ==========================
   const workoutsData = {
     "Dia 1 – Peito + Tríceps": [
       "Supino Inclinado Halteres",
@@ -51,7 +49,26 @@ document.addEventListener("DOMContentLoaded", function () {
   let history = JSON.parse(localStorage.getItem("history")) || [];
   let workoutData = JSON.parse(localStorage.getItem("workoutData")) || {};
   let weightData = JSON.parse(localStorage.getItem("weightData")) || [];
+  let photoData = JSON.parse(localStorage.getItem("photoData")) || [];
 
+  // ==========================
+  // NAVEGAÇÃO (SEM onclick)
+  // ==========================
+  document.querySelectorAll("nav button").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const id = this.dataset.section;
+
+      document.querySelectorAll(".section").forEach(sec => {
+        sec.classList.remove("active");
+      });
+
+      document.getElementById(id).classList.add("active");
+    });
+  });
+
+  // ==========================
+  // SELECT DE TREINO
+  // ==========================
   Object.keys(workoutsData).forEach(day => {
     const option = document.createElement("option");
     option.value = day;
@@ -73,6 +90,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // ==========================
+  // SÉRIES DINÂMICAS
+  // ==========================
   exerciseList.addEventListener("click", function(e){
     if(e.target.classList.contains("addSerieBtn")){
       const container = e.target.parentElement.querySelector(".seriesContainer");
@@ -91,10 +111,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // ==========================
+  // FINALIZAR TREINO
+  // ==========================
   window.finishWorkout = function () {
     const date = new Date().toISOString().split("T")[0];
     const day = selector.value;
-
     let totalVolume = 0;
 
     workoutData[date] = workoutData[date] || {};
@@ -119,19 +141,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    const lastVolume = getLastWorkoutVolume(day, date);
-
-    if (lastVolume !== null) {
-      const diff = ((totalVolume - lastVolume) / lastVolume) * 100;
-      const arrow = diff >= 0 ? "↑" : "↓";
-      const color = diff >= 0 ? "lime" : "red";
-      document.getElementById("lastVolume").innerHTML =
-        `<span style="color:${color}">${totalVolume} kg (${arrow} ${diff.toFixed(1)}%)</span>`;
-    } else {
-      document.getElementById("lastVolume").textContent =
-        totalVolume + " kg";
-    }
-
     history.push(`${date} – ${day}`);
 
     localStorage.setItem("history", JSON.stringify(history));
@@ -139,43 +148,61 @@ document.addEventListener("DOMContentLoaded", function () {
 
     renderHistory();
     updateDashboard();
-    
+
     alert("Treino salvo 🚀");
   };
 
-  function getLastWorkoutVolume(day, currentDate) {
-    const dates = Object.keys(workoutData).sort().reverse();
+  // ==========================
+  // DASHBOARD
+  // ==========================
+  function updateDashboard() {
+    const now = new Date();
+    const currentWeek = getWeekNumber(now);
 
-    for (let d of dates) {
-      if (d < currentDate && workoutData[d][day]) {
-        let volume = 0;
-        Object.values(workoutData[d][day]).forEach(ex => {
-          ex.series.forEach(s => {
-            volume += s.peso * s.reps;
+    let weeklyVolume = 0;
+    let weeklyWorkouts = 0;
+    let bestPR = 0;
+
+    Object.keys(workoutData).forEach(date => {
+      const d = new Date(date);
+      const week = getWeekNumber(d);
+
+      if (week === currentWeek) {
+        weeklyWorkouts++;
+
+        Object.values(workoutData[date]).forEach(day => {
+          Object.values(day).forEach(ex => {
+
+            ex.series.forEach(s => {
+              weeklyVolume += s.peso * s.reps;
+            });
+
+            if (ex.pr > bestPR) bestPR = ex.pr;
+
           });
         });
-        return volume;
       }
-    }
-    return null;
+    });
+
+    document.getElementById("weeklyVolume").textContent =
+      weeklyVolume ? weeklyVolume + " kg" : "-";
+
+    document.getElementById("weeklyWorkouts").textContent =
+      weeklyWorkouts || "-";
+
+    document.getElementById("bestPR").textContent =
+      bestPR ? bestPR + " kg" : "-";
   }
 
-  function renderHistory() {
-    historyList.innerHTML = "";
-    history.forEach(h => {
-      const li = document.createElement("li");
-      li.textContent = h;
-      historyList.appendChild(li);
-    });
+  function getWeekNumber(date) {
+    const firstJan = new Date(date.getFullYear(), 0, 1);
+    const days = Math.floor((date - firstJan) / (24 * 60 * 60 * 1000));
+    return Math.ceil((date.getDay() + 1 + days) / 7);
   }
 
-  window.showSection = function(id) {
-    document.querySelectorAll(".section").forEach(sec => {
-      sec.classList.remove("active");
-    });
-    document.getElementById(id).classList.add("active");
-  };
-
+  // ==========================
+  // PESO
+  // ==========================
   window.addWeight = function() {
     const weight = Number(document.getElementById("weightInput").value);
     if (!weight) return;
@@ -191,7 +218,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function renderChart() {
     const ctx = document.getElementById("weightChart");
-
     if (!ctx) return;
 
     new Chart(ctx, {
@@ -208,132 +234,79 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  document.getElementById("themeToggle").addEventListener("click", function () {
-    document.body.classList.toggle("dark");
-  });
+  // ==========================
+  // FOTOS
+  // ==========================
+  const photoUpload = document.getElementById("photoUpload");
+  const photoGallery = document.getElementById("photoGallery");
+  const photoSelect1 = document.getElementById("photoSelect1");
+  const photoSelect2 = document.getElementById("photoSelect2");
 
+  if (photoUpload) {
+    photoUpload.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const date = new Date().toISOString().split("T")[0];
+
+        photoData.push({ date, image: e.target.result });
+        localStorage.setItem("photoData", JSON.stringify(photoData));
+
+        renderPhotos();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderPhotos() {
+    if (!photoGallery) return;
+
+    photoGallery.innerHTML = "";
+    photoSelect1.innerHTML = "";
+    photoSelect2.innerHTML = "";
+
+    photoData.forEach((p, index) => {
+      const img = document.createElement("img");
+      img.src = p.image;
+      photoGallery.appendChild(img);
+
+      const opt1 = document.createElement("option");
+      opt1.value = index;
+      opt1.textContent = p.date;
+      photoSelect1.appendChild(opt1);
+
+      const opt2 = document.createElement("option");
+      opt2.value = index;
+      opt2.textContent = p.date;
+      photoSelect2.appendChild(opt2);
+    });
+  }
+
+  window.comparePhotos = function () {
+    const i1 = photoSelect1.value;
+    const i2 = photoSelect2.value;
+    if (i1 === i2) return;
+
+    const container = document.getElementById("comparisonContainer");
+    container.innerHTML = `
+      <div class="compareBox">
+        <img src="${photoData[i1].image}">
+        <img src="${photoData[i2].image}">
+      </div>
+    `;
+  };
+
+  // ==========================
+  // INIT
+  // ==========================
   selector.addEventListener("change", renderExercises);
 
   renderExercises();
   renderHistory();
   renderChart();
   updateDashboard();
-
-function updateDashboard() {
-
-  const now = new Date();
-  const currentWeek = getWeekNumber(now);
-
-  let weeklyVolume = 0;
-  let weeklyWorkouts = 0;
-  let bestPR = 0;
-
-  Object.keys(workoutData).forEach(date => {
-    const d = new Date(date);
-    const week = getWeekNumber(d);
-
-    if (week === currentWeek) {
-      weeklyWorkouts++;
-
-      Object.values(workoutData[date]).forEach(day => {
-        Object.values(day).forEach(ex => {
-
-          ex.series.forEach(s => {
-            weeklyVolume += s.peso * s.reps;
-          });
-
-          if (ex.pr > bestPR) {
-            bestPR = ex.pr;
-          }
-
-        });
-      });
-    }
-  });
-
-  document.getElementById("weeklyVolume").textContent =
-    weeklyVolume ? weeklyVolume + " kg" : "-";
-
-  document.getElementById("weeklyWorkouts").textContent =
-    weeklyWorkouts || "-";
-
-  document.getElementById("bestPR").textContent =
-    bestPR ? bestPR + " kg" : "-";
-}
-
-function getWeekNumber(date) {
-  const firstJan = new Date(date.getFullYear(), 0, 1);
-  const days = Math.floor((date - firstJan) / (24 * 60 * 60 * 1000));
-  return Math.ceil((date.getDay() + 1 + days) / 7);
-}
-
-let photoData = JSON.parse(localStorage.getItem("photoData")) || [];
-
-const photoUpload = document.getElementById("photoUpload");
-const photoGallery = document.getElementById("photoGallery");
-const photoSelect1 = document.getElementById("photoSelect1");
-const photoSelect2 = document.getElementById("photoSelect2");
-
-photoUpload.addEventListener("change", function () {
-  const file = this.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const date = new Date().toISOString().split("T")[0];
-
-    photoData.push({
-      date,
-      image: e.target.result
-    });
-
-    localStorage.setItem("photoData", JSON.stringify(photoData));
-    renderPhotos();
-  };
-  reader.readAsDataURL(file);
-});
-
-function renderPhotos() {
-  photoGallery.innerHTML = "";
-  photoSelect1.innerHTML = "";
-  photoSelect2.innerHTML = "";
-
-  photoData.forEach((p, index) => {
-    const img = document.createElement("img");
-    img.src = p.image;
-    photoGallery.appendChild(img);
-
-    const option1 = document.createElement("option");
-    option1.value = index;
-    option1.textContent = p.date;
-    photoSelect1.appendChild(option1);
-
-    const option2 = document.createElement("option");
-    option2.value = index;
-    option2.textContent = p.date;
-    photoSelect2.appendChild(option2);
-  });
-}
-
-window.comparePhotos = function () {
-  const i1 = photoSelect1.value;
-  const i2 = photoSelect2.value;
-
-  if (i1 === i2) return;
-
-  const container = document.getElementById("comparisonContainer");
-  container.innerHTML = `
-    <div class="compareBox">
-      <img src="${photoData[i1].image}">
-      <img src="${photoData[i2].image}">
-    </div>
-  `;
-};
-
-renderPhotos();
+  renderPhotos();
 
 });
-
-
-
-
