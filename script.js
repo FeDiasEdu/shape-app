@@ -118,6 +118,7 @@ function addOrUpdateWeight(value) {
   calculateHealthMetrics();
 
   saveState();
+  renderExercises();
   renderWeightUI();
   renderHealthUI();
 }
@@ -202,7 +203,63 @@ function renderHealthUI() {
   // Será implementado na próxima etapa
 }
 
+// ==========================
+// HEALTH UI + PROFILE SYSTEM
+// ==========================
 
+const heightInput = document.getElementById("heightInput");
+const ageInput = document.getElementById("ageInput");
+const sexInput = document.getElementById("sexInput");
+const activityInput = document.getElementById("activityInput");
+const goalInput = document.getElementById("goalInput");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+
+function renderHealthUI() {
+
+  const results = appState.health.results;
+  const profile = appState.health.profile;
+
+  // Atualiza campos de perfil
+  if (heightInput) heightInput.value = profile.height || "";
+  if (ageInput) ageInput.value = profile.age || "";
+  if (sexInput) sexInput.value = profile.sex;
+  if (activityInput) activityInput.value = profile.activity;
+  if (goalInput) goalInput.value = profile.goal;
+
+  // Atualiza resultados
+  document.getElementById("bmiResult").textContent = results.bmi || "-";
+  document.getElementById("bmiLabel").textContent = results.bmiLabel || "-";
+  document.getElementById("tmbResult").textContent = results.tmb || "-";
+  document.getElementById("tdeeResult").textContent = results.tdee || "-";
+  document.getElementById("waterResult").textContent = results.water || "-";
+
+  document.getElementById("caloriesResult").textContent = results.macros.calories || "-";
+  document.getElementById("proteinResult").textContent = results.macros.protein || "-";
+  document.getElementById("carbsResult").textContent = results.macros.carbs || "-";
+  document.getElementById("fatsResult").textContent = results.macros.fats || "-";
+}
+
+
+// ==========================
+// SAVE PROFILE
+// ==========================
+
+if (saveProfileBtn) {
+  saveProfileBtn.addEventListener("click", () => {
+
+    appState.health.profile.height = parseFloat(heightInput.value) || null;
+    appState.health.profile.age = parseInt(ageInput.value) || null;
+    appState.health.profile.sex = sexInput.value;
+    appState.health.profile.activity = parseFloat(activityInput.value);
+    appState.health.profile.goal = goalInput.value;
+
+    calculateHealthMetrics();
+
+    saveState();
+    renderHealthUI();
+  });
+}
+  
 // ==========================
 // WEIGHT UI
 // ==========================
@@ -316,3 +373,4 @@ renderExercises();
 renderWeightUI();
 
 });
+
