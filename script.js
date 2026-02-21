@@ -259,6 +259,72 @@ function getWeekNumber(date) {
   return Math.ceil((date.getDay() + 1 + days) / 7);
 }
 
+let photoData = JSON.parse(localStorage.getItem("photoData")) || [];
+
+const photoUpload = document.getElementById("photoUpload");
+const photoGallery = document.getElementById("photoGallery");
+const photoSelect1 = document.getElementById("photoSelect1");
+const photoSelect2 = document.getElementById("photoSelect2");
+
+photoUpload.addEventListener("change", function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const date = new Date().toISOString().split("T")[0];
+
+    photoData.push({
+      date,
+      image: e.target.result
+    });
+
+    localStorage.setItem("photoData", JSON.stringify(photoData));
+    renderPhotos();
+  };
+  reader.readAsDataURL(file);
 });
+
+function renderPhotos() {
+  photoGallery.innerHTML = "";
+  photoSelect1.innerHTML = "";
+  photoSelect2.innerHTML = "";
+
+  photoData.forEach((p, index) => {
+    const img = document.createElement("img");
+    img.src = p.image;
+    photoGallery.appendChild(img);
+
+    const option1 = document.createElement("option");
+    option1.value = index;
+    option1.textContent = p.date;
+    photoSelect1.appendChild(option1);
+
+    const option2 = document.createElement("option");
+    option2.value = index;
+    option2.textContent = p.date;
+    photoSelect2.appendChild(option2);
+  });
+}
+
+window.comparePhotos = function () {
+  const i1 = photoSelect1.value;
+  const i2 = photoSelect2.value;
+
+  if (i1 === i2) return;
+
+  const container = document.getElementById("comparisonContainer");
+  container.innerHTML = `
+    <div class="compareBox">
+      <img src="${photoData[i1].image}">
+      <img src="${photoData[i2].image}">
+    </div>
+  `;
+};
+
+renderPhotos();
+
+});
+
 
 
