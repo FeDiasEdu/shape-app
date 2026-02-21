@@ -1,122 +1,216 @@
-body {
+/* ==========================
+   RESET
+========================== */
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
   font-family: 'Segoe UI', sans-serif;
+}
+
+/* ==========================
+   BASE
+========================== */
+body {
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  background-size: 400% 400%;
-  animation: gradientMove 15s ease infinite;
-  color: white;
+  color: #ffffff;
+  min-height: 100vh;
+  transition: background 0.4s ease;
 }
 
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+body.dark {
+  background: linear-gradient(135deg, #000000, #111111, #1a1a1a);
 }
 
+/* ==========================
+   HEADER
+========================== */
 header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 20px;
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(15px);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+header h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+#themeToggle {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #00ff88;
+}
+
+/* ==========================
+   NAV
+========================== */
 nav {
   display: flex;
   justify-content: space-around;
-  padding: 12px;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(12px);
+  padding: 10px;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 nav button {
-  padding: 10px 16px;
-  border-radius: 12px;
+  background: transparent;
   border: none;
-  background: rgba(255,255,255,0.1);
-  color: white;
+  color: #ccc;
+  font-size: 14px;
   cursor: pointer;
-  transition: 0.3s;
+  padding: 8px 12px;
+  transition: 0.3s ease;
 }
 
 nav button:hover {
-  background: #00ff88;
-  color: black;
-  transform: translateY(-2px);
+  color: #00ff88;
 }
 
+/* ==========================
+   SECTIONS
+========================== */
 .section {
   display: none;
-  padding: 25px;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .section.active {
   display: block;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================
+   CARDS
+========================== */
 .card {
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(20px);
-  padding: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
   border-radius: 16px;
-  margin-bottom: 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  transition: 0.3s;
+  padding: 18px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: 0.3s ease;
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
 }
 
-input {
-  padding: 8px;
-  margin: 4px;
-  border-radius: 8px;
+/* ==========================
+   BUTTONS
+========================== */
+button {
+  padding: 10px 16px;
+  border-radius: 10px;
   border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s ease;
 }
 
 button.primary {
-  padding: 12px 20px;
-  background: #00ff88;
-  border: none;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s;
+  background: linear-gradient(135deg, #00ff88, #00cc6a);
+  color: #000;
+  font-weight: 600;
 }
 
 button.primary:hover {
   transform: scale(1.05);
 }
 
-.serie {
+button:not(.primary) {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+button:not(.primary):hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================
+   INPUTS
+========================== */
+input, select {
+  width: 100%;
+  padding: 10px;
   margin-bottom: 10px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
-#photoGallery img {
-  width: 130px;
-  margin: 8px;
-  border-radius: 12px;
-  transition: 0.3s;
+input::placeholder {
+  color: #ccc;
 }
 
-#photoGallery img:hover {
-  transform: scale(1.05);
+/* ==========================
+   LIST
+========================== */
+ul {
+  list-style: none;
+  margin-top: 10px;
 }
 
-.comparison {
-  margin-top: 20px;
+li {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 6px;
+  border-radius: 8px;
 }
 
-.compareBox {
+/* ==========================
+   CHART
+========================== */
+canvas {
+  margin-top: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* ==========================
+   BACKUP LIST
+========================== */
+.backupItem {
   display: flex;
-  gap: 20px;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 8px;
 }
 
-.compareBox img {
-  width: 45%;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+/* ==========================
+   RESPONSIVO
+========================== */
+@media (min-width: 768px) {
+
+  .section {
+    max-width: 700px;
+    margin: auto;
+  }
+
+  header {
+    padding: 25px 40px;
+  }
+
+  nav {
+    justify-content: center;
+    gap: 40px;
+  }
+
 }
