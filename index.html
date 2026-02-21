@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#00ff88">
   <title>Fitness Training Pro</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:,">
-  <link rel="manifest" href="manifest.json">
 
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
 </head>
 
 <body>
@@ -47,13 +47,9 @@
 
 <section id="workouts" class="section">
   <h2>Treinos</h2>
-
   <select id="daySelector"></select>
-
   <div id="exerciseList"></div>
-
   <button onclick="finishWorkout()" class="primary">Finalizar Treino</button>
-
   <h3>Histórico</h3>
   <ul id="workoutHistory"></ul>
 </section>
@@ -67,28 +63,22 @@
 
 <section id="photos" class="section">
   <h2>Fotos</h2>
-
   <div class="card">
     <input type="file" id="photoUpload" />
   </div>
-
   <div class="card">
     <h3>Comparar Fotos</h3>
     <select id="photoSelect1"></select>
     <select id="photoSelect2"></select>
     <button onclick="comparePhotos()" class="primary">Comparar</button>
   </div>
-
   <div id="comparisonContainer" class="comparison"></div>
-
   <h3>Galeria</h3>
   <div id="photoGallery"></div>
 </section>
 
-<!-- ✅ Scripts (OBRIGATÓRIO) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js"></script>
 
 </body>
 </html>
-
