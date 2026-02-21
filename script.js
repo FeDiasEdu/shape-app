@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // APP STATE
   // ==========================
   let appState = loadState();
+  let lastSavedStateString = JSON.stringify(appState);
 
   function loadState() {
     const saved = localStorage.getItem("fitnessAppState");
@@ -26,12 +27,19 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function saveState() {
-    localStorage.setItem("fitnessAppState", JSON.stringify(appState));
-    createAutoBackup();
+    const currentStateString = JSON.stringify(appState);
+
+    localStorage.setItem("fitnessAppState", currentStateString);
+
+    // 🔥 Só cria backup se houver mudança real
+    if (currentStateString !== lastSavedStateString) {
+      createAutoBackup(currentStateString);
+      lastSavedStateString = currentStateString;
+    }
   }
 
   // ==========================
-  // AUTO BACKUP SYSTEM
+  // AUTO BACKUP INTELIGENTE
   // ==========================
   const AUTO_BACKUP_KEY = "fitnessAutoBackups";
   const MAX_BACKUPS = 5;
@@ -40,12 +48,16 @@ document.addEventListener("DOMContentLoaded", function () {
     return JSON.parse(localStorage.getItem(AUTO_BACKUP_KEY)) || [];
   }
 
-  function createAutoBackup() {
+  function createAutoBackup(stateString) {
+
     let backups = getAutoBackups();
+
+    // evita duplicação
+    if (backups.length > 0 && backups[0].state === stateString) return;
 
     backups.unshift({
       date: new Date().toISOString(),
-      data: JSON.parse(JSON.stringify(appState))
+      state: stateString
     });
 
     if (backups.length > MAX_BACKUPS) {
@@ -57,23 +69,23 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   window.restoreAutoBackup = function (index) {
-    const backups = getAutoBackups();
 
+    const backups = getAutoBackups();
     if (!backups[index]) return;
 
     if (!confirm("Deseja restaurar este backup?")) return;
 
-    appState = backups[index].data;
+    appState = JSON.parse(backups[index].state);
     saveState();
     location.reload();
   };
 
   function renderBackupList() {
+
     const container = document.getElementById("autoBackupList");
     if (!container) return;
 
     const backups = getAutoBackups();
-
     container.innerHTML = "";
 
     backups.forEach((b, index) => {
@@ -91,6 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // BACKUP MANUAL
   // ==========================
   window.exportBackup = function () {
+
     const dataStr = JSON.stringify(appState, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
 
@@ -105,6 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   window.importBackup = function () {
+
     const fileInput = document.getElementById("importFile");
     const file = fileInput.files[0];
 
@@ -125,9 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         appState = importedData;
         saveState();
-        alert("Backup restaurado com sucesso!");
         location.reload();
-
       } catch {
         alert("Erro ao importar arquivo.");
       }
@@ -140,7 +152,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // ELEMENTOS
   // ==========================
   const selector = document.getElementById("daySelector");
-  const exerciseList = document.getElementById("exerciseList");
   const historyList = document.getElementById("workoutHistory");
   const weightInput = document.getElementById("weightInput");
   const weightChartCanvas = document.getElementById("weightChart");
@@ -162,31 +173,11 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // ==========================
-  // TREINOS BASE
+  // TREINO
   // ==========================
-  const workoutsData = {
-    "Dia 1 – Peito + Tríceps": ["Supino Inclinado Halteres","Chest Press","Crossover Baixo → Alto","Crucifixo Máquina","Tríceps Corda","Tríceps Testa"],
-    "Dia 2 – Costas + Bíceps": ["Puxada Neutra","Remada Cabo","Pulldown","Rosca Scott","Rosca Martelo"],
-    "Dia 3 – Posterior": ["Stiff","Flexora Deitada","Flexora Unilateral","Glute Bridge"],
-    "Dia 4 – Ombro": ["Elevação Lateral","Elevação Cabo","Crucifixo Invertido","Desenvolvimento Halteres"],
-    "Dia 5 – Perna": ["Agachamento Smith","Leg Press","Extensora","Panturrilha"]
-  };
-
-  Object.keys(workoutsData).forEach(day => {
-    const option = document.createElement("option");
-    option.value = day;
-    option.textContent = day;
-    selector.appendChild(option);
-  });
-
   window.finishWorkout = function () {
     const date = new Date().toISOString().split("T")[0];
-    const day = selector.value;
-
-    appState.workouts[date] = appState.workouts[date] || {};
-    appState.workouts[date][day] = {};
-    appState.history.push(`${date} – ${day}`);
-
+    appState.history.push(`${date} – ${selector.value}`);
     saveState();
     renderHistory();
   };
@@ -200,7 +191,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // ==========================
+  // PESO
+  // ==========================
   window.addWeight = function() {
+
     const weight = Number(weightInput.value);
     if (!weight) return;
 
@@ -230,18 +225,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  selector.addEventListener("change", () => {});
-
   renderHistory();
   renderChart();
   renderBackupList();
-
-  // ==========================
-  // AUTO BACKUP TIMER
-  // ==========================
-  setInterval(() => {
-    createAutoBackup();
-    console.log("Backup automático criado");
-  }, 300000); // 5 minutos
 
 });
