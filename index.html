@@ -33,15 +33,23 @@
   </div>
 
   <div class="card">
-    <p><strong>Volume da Semana:</strong> <span id="weeklyVolume">-</span></p>
+    <p><strong>Volume Total:</strong> <span id="weeklyVolume">-</span></p>
   </div>
 
   <div class="card">
-    <p><strong>Treinos na Semana:</strong> <span id="weeklyWorkouts">-</span></p>
+    <p><strong>Total de Treinos:</strong> <span id="weeklyWorkouts">-</span></p>
   </div>
 
   <div class="card">
-    <p><strong>Maior PR da Semana:</strong> <span id="bestPR">-</span></p>
+    <p><strong>Maior PR:</strong> <span id="bestPR">-</span></p>
+  </div>
+
+  <!-- 🔥 BACKUP -->
+  <div class="card">
+    <h3>Backup & Restore</h3>
+    <button onclick="exportBackup()" class="primary">Exportar Backup</button>
+    <input type="file" id="importFile" style="margin-top:10px;">
+    <button onclick="importBackup()" style="margin-top:10px;">Importar Backup</button>
   </div>
 </section>
 
@@ -66,14 +74,6 @@
   <div class="card">
     <input type="file" id="photoUpload" />
   </div>
-  <div class="card">
-    <h3>Comparar Fotos</h3>
-    <select id="photoSelect1"></select>
-    <select id="photoSelect2"></select>
-    <button onclick="comparePhotos()" class="primary">Comparar</button>
-  </div>
-  <div id="comparisonContainer" class="comparison"></div>
-  <h3>Galeria</h3>
   <div id="photoGallery"></div>
 </section>
 
