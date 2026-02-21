@@ -489,3 +489,35 @@ header {
 .bottom-nav {
   padding-top: 10px;
 }
+
+/* ==========================
+   TABS INTERNAS NUTRIÇÃO
+========================== */
+
+.nutrition-title {
+  display: flex;
+  gap: 20px;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.nutrition-tab {
+  cursor: pointer;
+  opacity: 0.6;
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
+  transition: 0.3s ease;
+}
+
+.nutrition-tab.active {
+  opacity: 1;
+  border-color: #00ff88;
+}
+
+.nutrition-content {
+  display: none;
+}
+
+.nutrition-content.active {
+  display: block;
+}
