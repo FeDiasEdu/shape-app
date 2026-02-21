@@ -49,6 +49,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     btn.onclick = () => {
       if (newWorker) {
+
+        // feedback visual imediato
+        btn.textContent = "Atualizando...";
+        btn.disabled = true;
+        toast.style.opacity = "0.6";
+  
+        // envia mensagem
         newWorker.postMessage({ type: "SKIP_WAITING" });
       }
     };
@@ -100,3 +107,4 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 });
+
