@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }, 1200);
 
   let appState = loadState();
-  let lastSavedStateString = JSON.stringify(appState);
 
   function loadState() {
     const saved = localStorage.getItem("fitnessAppState");
@@ -26,29 +25,42 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function saveState() {
-    const currentStateString = JSON.stringify(appState);
-    localStorage.setItem("fitnessAppState", currentStateString);
+    localStorage.setItem("fitnessAppState", JSON.stringify(appState));
   }
 
-  // NAVBAR
-  document.querySelectorAll(".nav-item").forEach(btn => {
+  const indicator = document.querySelector(".nav-indicator");
+  const navItems = document.querySelectorAll(".nav-item");
+
+  function moveIndicator(element) {
+    const rect = element.getBoundingClientRect();
+    const parentRect = element.parentElement.getBoundingClientRect();
+    indicator.style.width = rect.width + "px";
+    indicator.style.transform =
+      `translateX(${rect.left - parentRect.left}px)`;
+  }
+
+  navItems.forEach(btn => {
     btn.addEventListener("click", function () {
 
       document.querySelectorAll(".section").forEach(sec => {
         sec.classList.remove("active");
       });
 
-      document.querySelectorAll(".nav-item").forEach(n => {
-        n.classList.remove("active");
-      });
+      navItems.forEach(n => n.classList.remove("active"));
 
       const id = this.dataset.section;
       document.getElementById(id)?.classList.add("active");
       this.classList.add("active");
+
+      moveIndicator(this);
     });
   });
 
-  // TEMA
+  window.addEventListener("load", () => {
+    const active = document.querySelector(".nav-item.active");
+    if (active) moveIndicator(active);
+  });
+
   if (appState.settings.theme === "dark") {
     document.body.classList.add("dark");
   }
