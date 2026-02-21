@@ -1,6 +1,3 @@
-// ==========================
-// DOM READY
-// ==========================
 document.addEventListener("DOMContentLoaded", function () {
 
   // ==========================
@@ -51,8 +48,10 @@ document.addEventListener("DOMContentLoaded", function () {
   let weightData = JSON.parse(localStorage.getItem("weightData")) || [];
   let photoData = JSON.parse(localStorage.getItem("photoData")) || [];
 
+  let weightChartInstance = null;
+
   // ==========================
-  // NAVEGAÇÃO (SEM onclick)
+  // NAVEGAÇÃO
   // ==========================
   document.querySelectorAll("nav button").forEach(btn => {
     btn.addEventListener("click", function () {
@@ -62,12 +61,22 @@ document.addEventListener("DOMContentLoaded", function () {
         sec.classList.remove("active");
       });
 
-      document.getElementById(id).classList.add("active");
+      document.getElementById(id)?.classList.add("active");
     });
   });
 
   // ==========================
-  // SELECT DE TREINO
+  // TEMA DARK
+  // ==========================
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", function () {
+      document.body.classList.toggle("dark");
+    });
+  }
+
+  // ==========================
+  // SELECT TREINO
   // ==========================
   Object.keys(workoutsData).forEach(day => {
     const option = document.createElement("option");
@@ -78,6 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function renderExercises() {
     exerciseList.innerHTML = "";
+
     workoutsData[selector.value].forEach(ex => {
       const div = document.createElement("div");
       div.className = "card";
@@ -94,8 +104,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // SÉRIES DINÂMICAS
   // ==========================
   exerciseList.addEventListener("click", function(e){
+
     if(e.target.classList.contains("addSerieBtn")){
       const container = e.target.parentElement.querySelector(".seriesContainer");
+
       const div = document.createElement("div");
       div.className = "serie";
       div.innerHTML = `
@@ -103,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <input type="number" placeholder="Reps">
         <button class="removeSerie">X</button>
       `;
+
       container.appendChild(div);
     }
 
@@ -115,6 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // FINALIZAR TREINO
   // ==========================
   window.finishWorkout = function () {
+
     const date = new Date().toISOString().split("T")[0];
     const day = selector.value;
     let totalVolume = 0;
@@ -123,12 +137,14 @@ document.addEventListener("DOMContentLoaded", function () {
     workoutData[date][day] = {};
 
     document.querySelectorAll("#exerciseList .card").forEach(card => {
+
       const exName = card.querySelector("h3").textContent;
       const series = [];
 
       card.querySelectorAll(".serie").forEach(s => {
         const peso = Number(s.children[0].value);
         const reps = Number(s.children[1].value);
+
         if (peso && reps) {
           series.push({ peso, reps });
           totalVolume += peso * reps;
@@ -139,6 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const pr = Math.max(...series.map(s => s.peso));
         workoutData[date][day][exName] = { series, pr };
       }
+
     });
 
     history.push(`${date} – ${day}`);
@@ -153,9 +170,22 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // ==========================
+  // HISTÓRICO
+  // ==========================
+  function renderHistory() {
+    historyList.innerHTML = "";
+    history.forEach(h => {
+      const li = document.createElement("li");
+      li.textContent = h;
+      historyList.appendChild(li);
+    });
+  }
+
+  // ==========================
   // DASHBOARD
   // ==========================
   function updateDashboard() {
+
     const now = new Date();
     const currentWeek = getWeekNumber(now);
 
@@ -164,10 +194,12 @@ document.addEventListener("DOMContentLoaded", function () {
     let bestPR = 0;
 
     Object.keys(workoutData).forEach(date => {
+
       const d = new Date(date);
       const week = getWeekNumber(d);
 
       if (week === currentWeek) {
+
         weeklyWorkouts++;
 
         Object.values(workoutData[date]).forEach(day => {
@@ -201,26 +233,33 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ==========================
-  // PESO
+  // PESO + GRÁFICO
   // ==========================
   window.addWeight = function() {
+
     const weight = Number(document.getElementById("weightInput").value);
     if (!weight) return;
 
     const date = new Date().toLocaleDateString();
-    weightData.push({ date, weight });
 
+    weightData.push({ date, weight });
     localStorage.setItem("weightData", JSON.stringify(weightData));
+
     document.getElementById("currentWeight").textContent = weight;
 
     renderChart();
   };
 
   function renderChart() {
+
     const ctx = document.getElementById("weightChart");
     if (!ctx) return;
 
-    new Chart(ctx, {
+    if (weightChartInstance) {
+      weightChartInstance.destroy();
+    }
+
+    weightChartInstance = new Chart(ctx, {
       type: "line",
       data: {
         labels: weightData.map(w => w.date),
@@ -244,23 +283,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (photoUpload) {
     photoUpload.addEventListener("change", function () {
+
       const file = this.files[0];
       if (!file) return;
 
       const reader = new FileReader();
       reader.onload = function (e) {
+
         const date = new Date().toISOString().split("T")[0];
 
-        photoData.push({ date, image: e.target.result });
-        localStorage.setItem("photoData", JSON.stringify(photoData));
+        photoData.push({
+          date,
+          image: e.target.result
+        });
 
+        localStorage.setItem("photoData", JSON.stringify(photoData));
         renderPhotos();
       };
+
       reader.readAsDataURL(file);
     });
   }
 
   function renderPhotos() {
+
     if (!photoGallery) return;
 
     photoGallery.innerHTML = "";
@@ -268,6 +314,7 @@ document.addEventListener("DOMContentLoaded", function () {
     photoSelect2.innerHTML = "";
 
     photoData.forEach((p, index) => {
+
       const img = document.createElement("img");
       img.src = p.image;
       photoGallery.appendChild(img);
@@ -285,11 +332,14 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   window.comparePhotos = function () {
+
     const i1 = photoSelect1.value;
     const i2 = photoSelect2.value;
+
     if (i1 === i2) return;
 
     const container = document.getElementById("comparisonContainer");
+
     container.innerHTML = `
       <div class="compareBox">
         <img src="${photoData[i1].image}">
