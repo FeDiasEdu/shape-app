@@ -42,21 +42,24 @@ document.addEventListener("DOMContentLoaded", function () {
   function showUpdateToast() {
     const toast = document.getElementById("updateToast");
     const btn = document.getElementById("updateBtn");
-
+  
     if (!toast || !btn) return;
-
+  
     toast.classList.add("show");
-
+  
     btn.onclick = () => {
       if (newWorker) {
-
-        // feedback visual imediato
+  
         btn.textContent = "Atualizando...";
         btn.disabled = true;
-        toast.style.opacity = "0.6";
   
-        // envia mensagem
+        // envia mensagem para ativar novo SW
         newWorker.postMessage({ type: "SKIP_WAITING" });
+  
+        // força reload após pequeno delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 300);
       }
     };
   }
@@ -107,4 +110,5 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 });
+
 
