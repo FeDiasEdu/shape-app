@@ -273,8 +273,10 @@ function renderDietUI() {
 }
 
 // ==========================
-// WEIGHT UI
+// WEIGHT UI + CHART
 // ==========================
+
+let weightChartInstance = null;
 
 const weightInput = document.getElementById("weightInput");
 const addWeightBtn = document.getElementById("addWeightBtn");
@@ -288,15 +290,100 @@ if (addWeightBtn) {
 }
 
 function renderWeightUI() {
+
   const currentWeightSpan = document.getElementById("currentWeight");
 
   if (!appState.weights.length) {
     currentWeightSpan.textContent = "-";
+    renderWeightChart([]);
     return;
   }
 
-  currentWeightSpan.textContent =
-    appState.weights[appState.weights.length - 1].value;
+  // Ordena por data
+  const sortedWeights = [...appState.weights].sort((a, b) =>
+    new Date(a.date) - new Date(b.date)
+  );
+
+  const lastWeight = sortedWeights[sortedWeights.length - 1].value;
+  currentWeightSpan.textContent = lastWeight;
+
+  renderWeightChart(sortedWeights);
+}
+
+function renderWeightChart(weightData) {
+
+  const ctx = document.getElementById("weightChart");
+  if (!ctx) return;
+
+  if (weightChartInstance) {
+    weightChartInstance.destroy();
+  }
+
+  if (!weightData.length) return;
+
+  const labels = weightData.map(w => formatDate(w.date));
+  const values = weightData.map(w => w.value);
+
+  weightChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Peso (kg)",
+        data: values,
+        borderColor: "#00ff88",
+        backgroundColor: "rgba(0,255,136,0.15)",
+        tension: 0.4,
+        fill: true,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: "#00ff88",
+        borderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: "#111",
+          titleColor: "#00ff88",
+          bodyColor: "#fff",
+          padding: 10,
+          displayColors: false
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "#aaa"
+          },
+          grid: {
+            display: false
+          }
+        },
+        y: {
+          ticks: {
+            color: "#aaa"
+          },
+          grid: {
+            color: "rgba(255,255,255,0.05)"
+          }
+        }
+      }
+    }
+  });
+}
+
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit"
+  });
 }
 
 // ==========================
@@ -307,3 +394,4 @@ renderWeightUI();
 renderHealthUI();
 
 });
+
