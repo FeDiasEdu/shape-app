@@ -1,7 +1,16 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   // ==========================
-  // APP STATE (BASE ESTRUTURAL)
+  // REGISTRAR SERVICE WORKER
+  // ==========================
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(() => console.log("Service Worker registrado"))
+      .catch(err => console.log("Erro SW:", err));
+  }
+
+  // ==========================
+  // APP STATE
   // ==========================
   let appState = loadState();
 
@@ -266,3 +275,4 @@ document.addEventListener("DOMContentLoaded", function () {
   updateDashboard();
 
 });
+
