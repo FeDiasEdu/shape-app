@@ -5,41 +5,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#00ff88">
-
   <title>Fitness Training Pro</title>
-
+  <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-  <!-- SPLASH -->
+  <!-- MODAL EXERCÍCIO -->
+  <div id="exerciseModal" class="modal">
+    <div class="modal-content">
+      <h3>Adicionar Exercício</h3>
+      <div id="selectedExerciseBox" class="selected-box hidden"></div> <input type="text" id="exerciseSearch"
+        placeholder="Pesquisar exercício..." />
+      <div id="exerciseList" class="modal-list"></div>
+      <h4>Técnica</h4>
+      <div id="selectedTechniqueBox" class="selected-box hidden"></div> <input type="text" id="techniqueSearch"
+        placeholder="Pesquisar técnica..." />
+      <div id="techniqueList" class="modal-list"></div>
+      <div class="modal-actions"> <button id="clearSelection">Limpar</button> <button
+          id="cancelExercise">Cancelar</button> <button id="saveExercise" class="primary">Salvar</button> </div>
+    </div>
+  </div>
   <div id="splashScreen">
     <h1>Fitness Pro</h1>
   </div>
-
-  <!-- HEADER -->
-  <header>
-    <button id="menuToggle">☰</button>
-    <h1>Fitness Training Pro</h1>
-    <button id="themeToggle">🌙</button>
+  <header> <button id="menuToggle">☰</button>
+    <h1>Fitness Training Pro</h1> <button id="themeToggle">🌙</button>
   </header>
 
-  <!-- DRAWER -->
+  <!-- PAINEL LATERAL -->
   <div id="adminDrawer" class="drawer">
     <div class="drawer-content">
-      <h3>Biblioteca</h3>
-      <button id="manageExercises">Exercícios</button>
-      <button id="manageTechniques">Técnicas</button>
-      <button id="closeDrawer">Fechar</button>
+      <h3>Biblioteca</h3> <button id="manageExercises">Exercícios</button> <button
+        id="manageTechniques">Técnicas</button> <button id="closeDrawer">Fechar</button>
     </div>
   </div>
-
   <main>
-
-    <!-- DASHBOARD -->
     <section id="dashboard" class="section active">
       <h2>Dashboard</h2>
       <div class="card">
@@ -47,213 +50,31 @@
         <p><strong>Peso Atual:</strong> <span id="currentWeight">-</span> kg</p>
       </div>
     </section>
-
-    <!-- NUTRITION -->
-    <section id="nutrition" class="section">
-
-      <div class="nutrition-tabs">
-        <button class="nutrition-tab active" data-tab="nutri-info">
-          Nutrição
-        </button>
-        <button class="nutrition-tab" data-tab="nutri-diet">
-          Dieta
-        </button>
-      </div>
-
-      <!-- ABA NUTRIÇÃO -->
-      <div id="nutri-info" class="nutrition-content active">
-
-        <div class="card">
-          <h3>Perfil</h3>
-
-          <input type="number" id="heightInput" placeholder="Altura (cm)">
-          <input type="number" id="ageInput" placeholder="Idade">
-
-          <select id="sexInput">
-            <option value="male">Masculino</option>
-            <option value="female">Feminino</option>
-          </select>
-
-          <select id="activityInput">
-            <option value="1.2">Sedentário</option>
-            <option value="1.375">Leve</option>
-            <option value="1.55" selected>Moderado</option>
-            <option value="1.725">Intenso</option>
-            <option value="1.9">Muito Intenso</option>
-          </select>
-
-          <select id="goalInput">
-            <option value="cutting">Cutting</option>
-            <option value="maintenance" selected>Manutenção</option>
-            <option value="bulking">Bulking</option>
-          </select>
-
-          <button id="saveProfileBtn" class="primary">
-            Salvar Perfil
-          </button>
-        </div>
-
-        <div class="card">
-          <h3>Indicadores</h3>
-
-          <p><strong>IMC:</strong> <span id="bmiResult">-</span></p>
-          <p><strong>Classificação:</strong> <span id="bmiLabel">-</span></p>
-          <p><strong>TMB:</strong> <span id="tmbResult">-</span> kcal</p>
-          <p><strong>TDEE:</strong> <span id="tdeeResult">-</span> kcal</p>
-          <p><strong>Água diária:</strong> <span id="waterResult">-</span> ml</p>
-        </div>
-
-        <div class="card">
-          <h3>Macros Sugeridos</h3>
-
-          <p><strong>Calorias:</strong> <span id="caloriesResult">-</span> kcal</p>
-          <p><strong>Proteína:</strong> <span id="proteinResult">-</span> g</p>
-          <p><strong>Carboidratos:</strong> <span id="carbsResult">-</span> g</p>
-          <p><strong>Gorduras:</strong> <span id="fatsResult">-</span> g</p>
-        </div>
-
-      </div>
-
-      <!-- ABA DIETA -->
-      <div id="nutri-diet" class="nutrition-content">
-
-        <div class="card">
-
-          <h3>Registro Alimentar</h3>
-          <p><strong>Data:</strong> <span id="dietToday">-</span></p>
-
-          <div class="card" style="margin-top:12px;">
-            <h4>Totais Consumidos</h4>
-
-            <div class="progress-group">
-              <label>Calorias: <span id="dietTotalCalories">0</span> / <span id="dietTargetCalories">-</span> kcal</label>
-              <div class="progress-bar"><div id="barCalories" class="progress-fill"></div></div>
-            </div>
-
-            <div class="progress-group">
-              <label>Proteína: <span id="dietTotalProtein">0</span> / <span id="dietTargetProtein">-</span> g</label>
-              <div class="progress-bar"><div id="barProtein" class="progress-fill"></div></div>
-            </div>
-
-            <div class="progress-group">
-              <label>Carboidratos: <span id="dietTotalCarbs">0</span> / <span id="dietTargetCarbs">-</span> g</label>
-              <div class="progress-bar"><div id="barCarbs" class="progress-fill"></div></div>
-            </div>
-
-            <div class="progress-group">
-              <label>Gorduras: <span id="dietTotalFats">0</span> / <span id="dietTargetFats">-</span> g</label>
-              <div class="progress-bar"><div id="barFats" class="progress-fill"></div></div>
-            </div>
-
-            <div class="progress-group">
-              <label>Água: <span id="dietWaterConsumed">0</span> / <span id="dietWaterTarget">-</span> ml</label>
-              <div class="progress-bar"><div id="barWater" class="progress-fill"></div></div>
-            </div>
-          </div>
-
-          <h4 style="margin-top:12px;">Adicionar Alimento</h4>
-
-          <input type="text" id="foodNameInput" placeholder="Nome do alimento">
-          <input type="text" id="foodQtyInput" placeholder="Quantidade">
-          <input type="number" id="foodCaloriesInput" placeholder="Calorias (kcal)">
-          <input type="number" id="foodProteinInput" placeholder="Proteína (g)">
-          <input type="number" id="foodCarbsInput" placeholder="Carboidratos (g)">
-          <input type="number" id="foodFatsInput" placeholder="Gorduras (g)">
-
-          <button id="addFoodBtn" class="primary">Adicionar</button>
-
-          <h4 style="margin-top:14px;">Itens do dia</h4>
-          <div id="dietList"></div>
-
-          <h4 style="margin-top:14px;">Água</h4>
-          <input type="number" id="waterAddInput" placeholder="Adicionar água (ml)">
-          <button id="addWaterBtn" class="primary">Adicionar Água</button>
-
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- WORKOUTS -->
     <section id="workouts" class="section">
       <h2>Treinos</h2>
-      <div class="card">
-        <select id="daySelector"></select>
-      </div>
-      <div id="exerciseContainer"></div>
-      <button id="addExerciseBtn" class="primary">Adicionar Exercício</button>
+      <div class="card"> <select id="daySelector"></select> </div>
+      <div id="exerciseContainer"></div> <button id="addExerciseBtn" class="primary">Adicionar Exercício</button>
     </section>
-
-    <!-- WEIGHT -->
     <section id="weight" class="section">
       <h2>Peso</h2>
-      <div class="card">
-        <input type="number" id="weightInput" placeholder="Digite o peso (kg)" />
-        <button id="addWeightBtn" class="primary">Registrar Peso</button>
-      </div>
-      <canvas id="weightChart"></canvas>
+      <div class="card"> <input type="number" id="weightInput" placeholder="Digite o peso (kg)" /> <button
+          onclick="addWeight()" class="primary">Registrar Peso</button> </div> <canvas id="weightChart"></canvas>
     </section>
-
-    <!-- PHOTOS -->
     <section id="photos" class="section">
-      <h2>Fotos</h2>
-      <input type="file" id="photoUpload" />
+      <h2>Fotos</h2> <input type="file" id="photoUpload" />
       <div id="photoGallery"></div>
     </section>
-
   </main>
-
-  <!-- NAV -->
   <nav class="bottom-nav">
-    <div class="nav-indicator"></div>
-
-    <button data-section="dashboard" class="nav-item">
-      <span>Dashboard</span>
-    </button>
-
-    <button data-section="nutrition" class="nav-item">
-      <span>Nutrição</span>
-    </button>
-
-    <button data-section="workouts" class="nav-item nav-main active">
-      <span>Treinos</span>
-    </button>
-
-    <button data-section="weight" class="nav-item">
-      <span>Peso</span>
-    </button>
-
-    <button data-section="photos" class="nav-item">
-      <span>Fotos</span>
-    </button>
+    <div class="nav-indicator"></div> <button data-section="dashboard" class="nav-item active"> <span>Dashboard</span>
+    </button> <button data-section="workouts" class="nav-item"> <span>Treinos</span> </button> <button
+      data-section="weight" class="nav-item"> <span>Peso</span> </button> <button data-section="photos"
+      class="nav-item"> <span>Fotos</span> </button>
   </nav>
-
-  <div id="updateToast" class="update-toast">
-    <span>Nova versão disponível</span>
-    <button id="updateBtn">Atualizar</button>
-  </div>
-
-  <div id="exerciseModal" class="modal">
-    <div class="modal-content">
-      <h3>Adicionar Exercício</h3>
-      <div id="selectedExerciseBox" class="selected-box hidden"></div>
-      <input type="text" id="exerciseSearch" placeholder="Pesquisar exercício..." />
-      <div id="exerciseList" class="modal-list"></div>
-      <h4>Técnica</h4>
-      <div id="selectedTechniqueBox" class="selected-box hidden"></div>
-      <input type="text" id="techniqueSearch" placeholder="Pesquisar técnica..." />
-      <div id="techniqueList" class="modal-list"></div>
-      <div class="modal-actions">
-        <button id="clearSelection">Limpar</button>
-        <button id="cancelExercise">Cancelar</button>
-        <button id="saveExercise" class="primary">Salvar</button>
-      </div>
-    </div>
-  </div>
-
+  <div id="updateToast" class="update-toast"> <span>Nova versão disponível</span> <button
+      id="updateBtn">Atualizar</button> </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>
-
 </body>
+
 </html>
