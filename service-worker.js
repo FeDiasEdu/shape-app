@@ -1,49 +1,39 @@
-const APP_VERSION = "v2.0";
-const CACHE_NAME = `fitness-app-${APP_VERSION}`;
+// FiTina Training Pro - Service Worker
+const CACHE = "fitina-v2";
 
-const urlsToCache = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./script.js",
-  "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "https://cdn.jsdelivr.net/npm/chart.js"
-];
-
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+self.addEventListener("install", e => {
+  e.waitUntil(
+    caches.open(CACHE).then(cache =>
+      cache.addAll(["./index.html", "./manifest.json", "./sw.js"])
+        .catch(() => {})
+    )
   );
   self.skipWaiting();
 });
 
-self.addEventListener("activate", event => {
-  event.waitUntil(
+self.addEventListener("activate", e => {
+  e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      )
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME)
-          .then(cache => cache.put(event.request, clone));
+self.addEventListener("fetch", e => {
+  // Only handle same-origin requests
+  if (!e.request.url.startsWith(self.location.origin)) return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).then(response => {
+        // Cache successful responses
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        }
         return response;
-      })
-      .catch(() => caches.match(event.request))
+      }).catch(() => cached || new Response("Offline"));
+    })
   );
 });
