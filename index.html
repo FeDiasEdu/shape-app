@@ -1529,7 +1529,7 @@
       </div>
       <div class="search-source-tabs">
         <button class="diary-src-tab active" data-src="local">📦 Local</button>
-        <button class="diary-src-tab" data-src="online">🌐 Online</button>
+        <button class="diary-src-tab" data-src="online">🌐 Fatsecret / Online</button>
       </div>
       <div id="diaryFoodResults" class="food-results" style="max-height:240px;"></div>
     </div>
@@ -1599,7 +1599,7 @@
       </div>
       <div class="search-source-tabs">
         <button class="src-tab active" data-src="local">📦 Local</button>
-        <button class="src-tab" data-src="online">🌐 Online</button>
+        <button class="src-tab" data-src="online">🌐 Fatsecret / Online</button>
       </div>
       <div id="foodSearchResults" class="food-results"></div>
     </div>
@@ -1998,7 +1998,7 @@
     </div>
     <div class="search-source-tabs">
       <button class="src-tab-plan active" data-src="local">📦 Local</button>
-      <button class="src-tab-plan" data-src="online">🌐 Online</button>
+      <button class="src-tab-plan" data-src="online">🌐 Fatsecret / Online</button>
     </div>
     <div id="planFoodResults" class="food-results" style="max-height:220px;"></div>
 
@@ -2882,35 +2882,89 @@ document.addEventListener("DOMContentLoaded", function () {
   let _searchSource = "local";
   window._lastFoodResults = [];
 
-  function searchFoods(query, source, onResults, spinnerId) {
-    if(source==="local") {
-      const q=query.toLowerCase();
-      const all=[...BUILTIN_FOODS.map(f=>({...f,_src:"local"})),...appState.foodLibrary.map(f=>({...f,_src:"custom"}))];
-      onResults(all.filter(f=>f.name.toLowerCase().includes(q)));
-    } else {
-      if(spinnerId) document.getElementById(spinnerId)?.classList.remove("hidden");
-      const url=`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=15&lc=pt`;
-      fetch(url).then(r=>r.json()).then(data=>{
-        const mapped=(data.products||[]).filter(p=>p.product_name&&p.nutriments).map(p=>({
-          name:p.product_name_pt||p.product_name, brand:p.brands||"",
-          cal:Math.round(p.nutriments["energy-kcal_100g"]||p.nutriments["energy-kcal"]||0),
-          prot:Math.round((p.nutriments["proteins_100g"]||0)*10)/10,
-          carb:Math.round((p.nutriments["carbohydrates_100g"]||0)*10)/10,
-          fat:Math.round((p.nutriments["fat_100g"]||0)*10)/10,
-          fiber:Math.round((p.nutriments["fiber_100g"]||0)*10)/10,
-          sodium:Math.round((p.nutriments["sodium_100g"]||0)*1000),
-          _src:"online"
-        })).filter(p=>p.cal>0||p.prot>0);
-        onResults(mapped);
-      }).catch(()=>onResults(null)).finally(()=>{ if(spinnerId) document.getElementById(spinnerId)?.classList.add("hidden"); });
+  // ── Food Search: Fatsecret (via proxy) + Open Food Facts BR fallback ──────
+  const FS_PROXY = "https://fitina-proxy.fe-dias-edu.workers.dev/";
+
+  function mapFatsecretFood(f) {
+    const desc = f.food_description || "";
+    const cal  = parseFloat((desc.match(/Calories:\s*([\d.]+)/i)||[])[1]||0);
+    const fat  = parseFloat((desc.match(/Fat:\s*([\d.]+)/i)||[])[1]||0);
+    const carb = parseFloat((desc.match(/Carbs:\s*([\d.]+)/i)||[])[1]||0);
+    const prot = parseFloat((desc.match(/Protein:\s*([\d.]+)/i)||[])[1]||0);
+    return {
+      name: f.food_name, brand: f.brand_name || "",
+      cal: Math.round(cal), prot: Math.round(prot*10)/10,
+      carb: Math.round(carb*10)/10, fat: Math.round(fat*10)/10,
+      fiber: 0, sodium: 0, _src: "fatsecret"
+    };
+  }
+
+  function mapOFFFood(p) {
+    return {
+      name: p.product_name_pt || p.product_name, brand: p.brands || "",
+      cal:  Math.round(p.nutriments["energy-kcal_100g"] || p.nutriments["energy-kcal"] || 0),
+      prot: Math.round((p.nutriments["proteins_100g"]      || 0) * 10) / 10,
+      carb: Math.round((p.nutriments["carbohydrates_100g"] || 0) * 10) / 10,
+      fat:  Math.round((p.nutriments["fat_100g"]           || 0) * 10) / 10,
+      fiber:Math.round((p.nutriments["fiber_100g"]         || 0) * 10) / 10,
+      sodium:Math.round((p.nutriments["sodium_100g"]       || 0) * 1000),
+      _src: "online"
+    };
+  }
+
+  async function searchFatsecret(query) {
+    const url = `${FS_PROXY}?q=${encodeURIComponent(query)}&max_results=15`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || "Fatsecret error");
+    const foods = data.foods?.food || [];
+    const arr = Array.isArray(foods) ? foods : [foods];
+    return arr.map(mapFatsecretFood).filter(f => f.cal > 0 || f.prot > 0);
+  }
+
+  async function searchOFF(query) {
+    const url = `https://br.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=15&lc=pt&tagtype_0=countries&tag_contains_0=contains&tag_0=brazil`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    const products = (data.products || []).filter(p => p.product_name && p.nutriments);
+    let mapped = products.map(mapOFFFood).filter(p => p.cal > 0 || p.prot > 0);
+    if (mapped.length < 5) {
+      try {
+        const url2 = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&lc=pt`;
+        const res2  = await fetch(url2);
+        const data2 = await res2.json();
+        const extra = (data2.products || [])
+          .filter(p => p.product_name && p.nutriments)
+          .map(mapOFFFood)
+          .filter(p => (p.cal > 0 || p.prot > 0) && !mapped.find(m => m.name === p.name));
+        mapped = [...mapped, ...extra];
+      } catch(_) {}
     }
+    return mapped;
+  }
+
+  function searchFoods(query, source, onResults, spinnerId) {
+    if (source === "local") {
+      const q = query.toLowerCase();
+      const all = [...BUILTIN_FOODS.map(f=>({...f,_src:"local"})), ...appState.foodLibrary.map(f=>({...f,_src:"custom"}))];
+      onResults(all.filter(f => f.name.toLowerCase().includes(q)));
+      return;
+    }
+    if (spinnerId) document.getElementById(spinnerId)?.classList.remove("hidden");
+    searchFatsecret(query)
+      .then(results => {
+        if (results.length > 0) { onResults(results); }
+        else { return searchOFF(query).then(onResults); }
+      })
+      .catch(() => { searchOFF(query).then(onResults).catch(() => onResults(null)); })
+      .finally(() => { if (spinnerId) document.getElementById(spinnerId)?.classList.add("hidden"); });
   }
 
   function buildFoodResultsHTML(foods, clickFn) {
     if(!foods||!foods.length) return `<div class="empty-state" style="padding:16px;">Nenhum resultado encontrado.</div>`;
     window._lastFoodResults = foods;
     return foods.slice(0,20).map((f,i)=>{
-      const badge=f._src==="local"?`<span class="food-source-badge badge-local">LOCAL</span>`:f._src==="custom"?`<span class="food-source-badge badge-custom">MEU</span>`:`<span class="food-source-badge badge-online">ONLINE</span>`;
+      const badge=f._src==="local"?`<span class="food-source-badge badge-local">LOCAL</span>`:f._src==="custom"?`<span class="food-source-badge badge-custom">MEU</span>`:f._src==="fatsecret"?`<span class="food-source-badge" style="background:rgba(255,159,67,0.15);border-color:rgba(255,159,67,0.3);color:#ff9f43;">FATSECRET</span>`:`<span class="food-source-badge badge-online">ONLINE</span>`;
       return `<div class="food-result-item" onclick="${clickFn}(${i})">
         <div><strong>${f.name}</strong><small>${f.cal} kcal · P:${f.prot}g · C:${f.carb}g · G:${f.fat}g /100g</small><div>${badge}${f.brand?`<span style="font-size:11px;color:var(--text-dim);margin-left:4px;">${f.brand}</span>`:""}</div></div>
         <button class="add-food-btn">+</button>
