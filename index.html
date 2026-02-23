@@ -515,13 +515,13 @@
     /* MODAL */
     .modal {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
       display: none;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
       z-index: 10000;
-      padding: 0;
+      padding: 16px;
     }
     .modal.show { display: flex; }
     .modal-content {
@@ -529,10 +529,11 @@
       max-width: 480px;
       background: #0d1e2b;
       border: 1px solid var(--border);
-      border-radius: 24px 24px 0 0;
-      padding: 20px 18px 32px;
+      border-radius: 20px;
+      padding: 20px 18px 24px;
       max-height: 88vh;
       overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
     }
     .modal-handle {
       width: 36px; height: 4px;
@@ -1150,6 +1151,16 @@
     .ex-slot { margin-bottom: 12px; }
     .ex-slot label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
 
+
+    /* Exercise drag handle */
+    .ex-drag-handle {
+      cursor: grab; font-size: 18px; color: var(--text-dim);
+      padding: 4px 2px; line-height: 1; flex-shrink: 0;
+      opacity: 0.5; transition: opacity 0.2s; user-select: none;
+    }
+    .ex-drag-handle:hover { opacity: 1; color: var(--green); }
+    .exercise-item[draggable=true]:active { cursor: grabbing; }
+
     /* Weight field in exercise card */
     .exercise-item { position: relative; }
     .exercise-weight-badge {
@@ -1258,6 +1269,7 @@
 </header>
 
 <!-- DRAWER -->
+<div id="drawerOverlay" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.5);" onclick="document.getElementById('adminDrawer').classList.remove('open');document.getElementById('drawerOverlay').style.display='none';"></div>
 <div id="adminDrawer" class="drawer">
   <div class="drawer-content">
     <h3>Biblioteca</h3>
@@ -1820,6 +1832,16 @@
     </div>
 
     <!-- Rest time -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+      <div>
+        <label>🔢 Séries</label>
+        <input type="number" id="exSets" placeholder="Ex: 4" min="1" max="20" style="margin-bottom:0;" />
+      </div>
+      <div>
+        <label>🔁 Repetições</label>
+        <input type="number" id="exReps" placeholder="Ex: 12" min="1" style="margin-bottom:0;" />
+      </div>
+    </div>
     <label style="margin-top:8px;">⏱ Descanso entre séries (segundos)</label>
     <input type="number" id="exRest" placeholder="Ex: 60" min="0" style="margin-bottom:10px;" />
 
@@ -2131,7 +2153,16 @@ document.addEventListener("DOMContentLoaded", function () {
   // DRAWER
   const drawer = document.getElementById("adminDrawer");
   document.getElementById("menuToggle").onclick = () => drawer.classList.add("open");
-  document.getElementById("closeDrawer").onclick = () => drawer.classList.remove("open");
+  document.getElementById("closeDrawer").onclick = () => { drawer.classList.remove("open"); document.getElementById("drawerOverlay").style.display="none"; };
+  // Patch menu button to show overlay
+  const _origMenuBtn = document.querySelector(".menu-btn");
+  if(_origMenuBtn) {
+    const _origOnclick = _origMenuBtn.onclick;
+    _origMenuBtn.onclick = function(e) {
+      if(_origOnclick) _origOnclick.call(this,e);
+      setTimeout(()=>{ if(drawer.classList.contains("open")) document.getElementById("drawerOverlay").style.display="block"; },10);
+    };
+  }
   document.getElementById("manageExercises").onclick = () => { drawer.classList.remove("open"); openLibraryModal("exercises"); };
   document.getElementById("manageTechniques").onclick = () => { drawer.classList.remove("open"); openLibraryModal("techniques"); };
 
@@ -2357,18 +2388,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const restBadge = item.rest ? `<span class="exercise-weight-badge" style="background:rgba(59,158,255,0.1);border-color:rgba(59,158,255,0.25);color:var(--blue);">⏱ ${item.rest}s</span>` : "";
       const techBadge = item.technique ? `<span class="exercise-weight-badge" style="background:rgba(255,159,67,0.1);border-color:rgba(255,159,67,0.25);color:var(--orange);">⚡${item.technique}</span>` : "";
+      const setRepBadge = (item.sets||item.reps) ? `<span class="exercise-weight-badge" style="background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.2);color:var(--green);">🔢 ${item.sets||"?"}x${item.reps||"?"}</span>` : "";
 
       const editId = `exEdit_${day}_${idx}`;
       const isDone = item._done;
 
+      d.draggable = !item._done;
+      d.dataset.exIdx = idx;
       d.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          ${!isDone ? '<span class="ex-drag-handle" title="Arrastar para reordenar">⠿</span>' : ''}
           <button class="ex-check-btn ${isDone ? 'ex-checked' : ''}" data-chk="${idx}" title="${isDone ? 'Desmarcar' : 'Marcar como concluído'}">
             ${isDone ? '✅' : '⬜'}
           </button>
           <div style="flex:1; ${isDone ? 'opacity:0.5; text-decoration:line-through;' : ''}">
             <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-bottom:4px;">${exLabel}</div>
-            ${!isDone ? `<div style="display:flex; flex-wrap:wrap; gap:4px;">${techBadge}${restBadge}</div>` : ''}
+            ${!isDone ? `<div style="display:flex; flex-wrap:wrap; gap:4px;">${setRepBadge}${techBadge}${restBadge}</div>` : ''}
           </div>
           <div style="display:flex; gap:4px; flex-shrink:0;">
             ${!isDone ? `<button class="btn-ghost" data-edit="${idx}" style="padding:5px 9px; font-size:12px;">✏️</button>` : ''}
@@ -2382,6 +2417,16 @@ document.addEventListener("DOMContentLoaded", function () {
               <input type="number" class="ex-weight-inline" data-slot="${si}" value="${weights[si]||""}" placeholder="Ex: 20" step="0.5" min="0" />
             </div>
           `).join("")}
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+            <div>
+              <label>🔢 Séries</label>
+              <input type="number" class="ex-sets-inline" value="${item.sets||""}" placeholder="Ex: 4" min="1" style="margin-bottom:0;" />
+            </div>
+            <div>
+              <label>🔁 Repetições</label>
+              <input type="number" class="ex-reps-inline" value="${item.reps||""}" placeholder="Ex: 12" min="1" style="margin-bottom:0;" />
+            </div>
+          </div>
           <div style="margin-bottom:6px;">
             <label>⏱ Descanso (segundos)</label>
             <input type="number" class="ex-rest-inline" value="${item.rest||""}" placeholder="Ex: 60" min="0" />
@@ -2421,15 +2466,43 @@ document.addEventListener("DOMContentLoaded", function () {
       if (saveBtn) saveBtn.onclick = () => {
         const newWeights = [...d.querySelectorAll(".ex-weight-inline")].map(inp => parseFloat(inp.value)||null);
         const newRest = parseInt(d.querySelector(".ex-rest-inline").value) || null;
+        const newSets = parseInt(d.querySelector(".ex-sets-inline").value) || null;
+        const newReps = parseInt(d.querySelector(".ex-reps-inline").value) || null;
         exNames.forEach((ex, si) => { if (newWeights[si]) setExWeight(ex, newWeights[si]); });
         appState.workouts[day][idx].weights = newWeights;
         appState.workouts[day][idx].weight = newWeights[0];
         appState.workouts[day][idx].rest = newRest;
+        appState.workouts[day][idx].sets = newSets;
+        appState.workouts[day][idx].reps = newReps;
         saveState(); renderExercises();
       };
 
       c.appendChild(d);
     });
+
+    // Drag-to-reorder exercises
+    let _exDragIdx = null;
+    c.querySelectorAll(".exercise-item[draggable='true']").forEach(el => {
+      el.addEventListener("dragstart", e => {
+        _exDragIdx = parseInt(el.dataset.exIdx);
+        el.style.opacity = "0.4";
+        e.dataTransfer.effectAllowed = "move";
+      });
+      el.addEventListener("dragend", () => { el.style.opacity = ""; _exDragIdx = null; });
+      el.addEventListener("dragover", e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; el.style.outline = "2px solid var(--green)"; });
+      el.addEventListener("dragleave", () => { el.style.outline = ""; });
+      el.addEventListener("drop", e => {
+        e.preventDefault(); el.style.outline = "";
+        const toIdx = parseInt(el.dataset.exIdx);
+        if (_exDragIdx === null || _exDragIdx === toIdx) return;
+        const day = daySelector.value;
+        const arr = appState.workouts[day];
+        const [moved] = arr.splice(_exDragIdx, 1);
+        arr.splice(toIdx, 0, moved);
+        saveState(); renderExercises();
+      });
+    });
+
     updateDashboard();
   }
 
@@ -2506,7 +2579,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  document.getElementById("addExerciseBtn").onclick = () => {
+  document.getElementById("addExerciseBtn").onclick = () => { document.getElementById("exSets").value=""; document.getElementById("exReps").value="";
     selExercises = [null, null, null]; selTech = null; _exSlotCount = 1;
     [0,1,2].forEach(i => {
       const inp = document.querySelector(`.ex-search[data-slot="${i}"]`);
@@ -2561,6 +2634,8 @@ document.addEventListener("DOMContentLoaded", function () {
       slotWeights.push(inp ? (parseFloat(inp.value) || null) : null);
     }
     const restVal = parseInt(document.getElementById("exRest").value) || null;
+    const setsVal = parseInt(document.getElementById("exSets").value) || null;
+    const repsVal = parseInt(document.getElementById("exReps").value) || null;
     // Save weight to persistent map
     const exercises = selExercises.slice(0, _exSlotCount).filter(Boolean);
     exercises.forEach((ex, si) => { if (slotWeights[si]) setExWeight(ex, slotWeights[si]); });
@@ -2570,7 +2645,9 @@ document.addEventListener("DOMContentLoaded", function () {
       technique: selTech,
       weights: slotWeights,
       weight: slotWeights[0], // back-compat
-      rest: restVal
+      rest: restVal,
+      sets: setsVal,
+      reps: repsVal
     });
     saveState(); renderExercises(); modal.classList.remove("show");
   };
@@ -3132,7 +3209,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if(!appState.dietPlans) appState.dietPlans=[];
     // Create plan with all 6 preset meals pre-populated
     const plan={id:String(Date.now()),name,desc:document.getElementById("newPlanDesc").value.trim(),
-      meals:PRESET_MEALS.map(p=>({id:String(Date.now()+Math.random()).replace('.',''),name:p.name,emoji:p.emoji,time:p.time,foods:[],preset:p.id}))};
+      meals:PRESET_MEALS.map((p,i)=>({id:`meal_${Date.now()}_${i}`,name:p.name,emoji:p.emoji,time:p.time,foods:[],preset:p.id}))};
     appState.dietPlans.push(plan);
     setActivePlan(plan.id);
     saveState(); document.getElementById("newPlanName").value=""; document.getElementById("newPlanDesc").value="";
@@ -3395,9 +3472,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("dashProtBar").style.width = Math.min((totals.protein/(g.protein||1))*100,100)+"%";
     document.getElementById("dashCarbBar").style.width = Math.min((totals.carbs/(g.carbs||1))*100,100)+"%";
     document.getElementById("dashFatBar").style.width = Math.min((totals.fat/(g.fat||1))*100,100)+"%";
-    document.getElementById("dashProtVal").textContent = totals.protein+"g";
-    document.getElementById("dashCarbVal").textContent = totals.carbs+"g";
-    document.getElementById("dashFatVal").textContent = totals.fat+"g";
+    document.getElementById("dashProtVal").textContent = totals.protein.toFixed(2)+"/"+(g.protein||"—")+"g";
+    document.getElementById("dashCarbVal").textContent = totals.carbs.toFixed(2)+"/"+(g.carbs||"—")+"g";
+    document.getElementById("dashFatVal").textContent = totals.fat.toFixed(2)+"/"+(g.fat||"—")+"g";
   }
 
   // PHOTOS — Full Evolution Journal + Comparison
@@ -3517,6 +3594,44 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("compareResult").classList.remove("hidden");
   };
 
+
+
+  // ── CLICK OUTSIDE TO CLOSE MODALS & DRAWER ──────────────────────────────
+  document.querySelectorAll(".modal").forEach(modal => {
+    modal.addEventListener("click", function(e) {
+      if (e.target === this) {
+        this.classList.remove("show");
+        // Reset _editingMealId if closing diet food modal
+        if (this.id === "addFoodToPlanModal") { _editingMealId = null; _planFoodSelected = null; }
+      }
+    });
+  });
+
+  // ── ANDROID BACK BUTTON (popstate) ───────────────────────────────────────
+  function pushBackState() { history.pushState({fitina: true}, ""); }
+  pushBackState();
+  window.addEventListener("popstate", function() {
+    // Close any open modal first
+    const openModal = document.querySelector(".modal.show");
+    if (openModal) { openModal.classList.remove("show"); pushBackState(); return; }
+    // Close drawer
+    if (drawer.classList.contains("open")) {
+      drawer.classList.remove("open");
+      document.getElementById("drawerOverlay").style.display = "none";
+      pushBackState(); return;
+    }
+    // Go back from workout detail to overview
+    const detail = document.getElementById("workoutsDetail");
+    const overview = document.getElementById("workoutsOverview");
+    if (detail && detail.style.display !== "none") {
+      detail.style.display = "none";
+      overview.style.display = "block";
+      renderWeekOverview();
+      pushBackState(); return;
+    }
+    // Otherwise push state again to prevent app exit
+    pushBackState();
+  });
 
   // ── PWA INSTALL ──────────────────────────────────────────────────────────
   let _pwaPrompt = null;
