@@ -2162,11 +2162,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("manageTechniques").onclick = () => { closeDrawer_(); openLibraryModal("techniques"); };
 
   document.getElementById("exportData").onclick = () => {
-    const blob = new Blob([JSON.stringify(appState, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `fitness-backup-${today().replace(/\//g,"-")}.json`;
-    a.click();
+    doExportBackup();
     closeDrawer_();
   };
   document.getElementById("importDataBtn").onclick = () => document.getElementById("importFile").click();
@@ -3694,6 +3690,59 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
+
+  // ── BACKUP REMINDER ──────────────────────────────────────────────────────
+  const BACKUP_KEY = "fitina_last_backup";
+  const BACKUP_INTERVAL_DAYS = 7;
+
+  function doExportBackup() {
+    const blob = new Blob([JSON.stringify(appState, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `fitina-backup-${today()}.json`;
+    a.click();
+    // Record backup date
+    localStorage.setItem(BACKUP_KEY, Date.now().toString());
+  }
+
+  function checkBackupReminder() {
+    const last = parseInt(localStorage.getItem(BACKUP_KEY) || "0");
+    const daysSince = (Date.now() - last) / (1000 * 60 * 60 * 24);
+    // Only show if there's actual data to backup and 7+ days since last backup
+    const hasData = (appState.workouts && Object.keys(appState.workouts).length > 0) ||
+                    (appState.meals && appState.meals.length > 0) ||
+                    (appState.dietPlans && appState.dietPlans.length > 0);
+    if (!hasData) return;
+    if (daysSince >= BACKUP_INTERVAL_DAYS) {
+      const modal = document.getElementById("backupReminderModal");
+      const lastEl = document.getElementById("backupLastDate");
+      if (last === 0) {
+        lastEl.textContent = "Nenhum backup registrado ainda.";
+      } else {
+        const d = new Date(last);
+        lastEl.textContent = `Último backup: ${d.toLocaleDateString("pt-BR")} às ${d.toLocaleTimeString("pt-BR", {hour:"2-digit",minute:"2-digit"})}`;
+      }
+      modal.style.display = "flex";
+    }
+  }
+
+  document.getElementById("backupNowBtn").onclick = () => {
+    doExportBackup();
+    document.getElementById("backupReminderModal").style.display = "none";
+  };
+
+  document.getElementById("backupLaterBtn").onclick = () => {
+    // Snooze 1 day
+    localStorage.setItem(BACKUP_KEY, (Date.now() - (BACKUP_INTERVAL_DAYS - 1) * 24 * 60 * 60 * 1000).toString());
+    document.getElementById("backupReminderModal").style.display = "none";
+  };
+
+  document.getElementById("backupDismissBtn").onclick = () => {
+    localStorage.setItem(BACKUP_KEY, Date.now().toString());
+    document.getElementById("backupReminderModal").style.display = "none";
+  };
+
+  // Also update exportData button to record backup date
   // ── SERVICE WORKER registration ─────────────────────────────────────────
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
@@ -3701,8 +3750,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // INIT
   updateWeight(); renderExercises(); renderWeekOverview(); renderPhotos(); updateDashboard(); renderMealLog(); renderMyLibrary(); renderDietTab();
+  setTimeout(checkBackupReminder, 2000); // Check backup reminder after app loads
 });
 </script>
+
+
+<!-- BACKUP REMINDER MODAL -->
+<div id="backupReminderModal" style="display:none; position:fixed; inset:0; z-index:9500; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#0d1e2b; border:1px solid rgba(0,255,136,0.25); border-radius:20px; padding:28px 22px 22px; max-width:340px; width:100%; box-shadow:0 0 40px rgba(0,255,136,0.08);">
+    <div style="text-align:center; margin-bottom:16px;">
+      <div style="font-size:42px; margin-bottom:8px;">💾</div>
+      <div style="font-size:17px; font-weight:700; color:#e8f0f5; margin-bottom:6px;">Hora do Backup Semanal!</div>
+      <div style="font-size:13px; color:#7a9bb5; line-height:1.6;">
+        Faz 7 dias desde o seu último backup.<br>
+        Recomendamos exportar seus dados para não perdê-los em caso de atualização.
+      </div>
+    </div>
+    <div id="backupLastDate" style="text-align:center; font-size:11px; color:#7a9bb5; margin-bottom:16px; font-family:monospace;"></div>
+    <button id="backupNowBtn" style="width:100%; padding:14px; background:linear-gradient(90deg,#00cc6a,#00ff88); color:#0c1a24; font-weight:700; font-size:15px; border:none; border-radius:12px; cursor:pointer; margin-bottom:10px;">
+      📥 Fazer Backup Agora
+    </button>
+    <div style="display:flex; gap:8px;">
+      <button id="backupLaterBtn" style="flex:1; padding:11px; background:rgba(255,255,255,0.06); color:#7a9bb5; border:1px solid rgba(255,255,255,0.08); border-radius:10px; cursor:pointer; font-size:13px;">
+        Lembrar depois
+      </button>
+      <button id="backupDismissBtn" style="flex:1; padding:11px; background:rgba(255,255,255,0.06); color:#7a9bb5; border:1px solid rgba(255,255,255,0.08); border-radius:10px; cursor:pointer; font-size:13px;">
+        ✓ Já fiz backup
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- CUSTOM CONFIRM MODAL -->
 <div id="confirmModal" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
