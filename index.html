@@ -2958,7 +2958,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if(_addMealTarget==="diet") {
       // Add to diet plan meal
       const plan=findPlan(_activePlanId);
-      const meal=plan?.meals.find(mx=>mx.id===_editingMealId);
+      const meal=plan?.meals.find(mx=>String(mx.id)===String(_editingMealId));
       if(meal){ meal.foods.push({id:Date.now(),name:_selectedFood.name,qtyLabel,grams,...m}); saveState(); renderDietPlanContent(); }
     } else {
       // Add to diary
@@ -3250,16 +3250,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.deleteDietMeal=function(mealId){
     const plan=findPlan(_activePlanId); if(!plan) return;
-    const meal=plan.meals.find(m=>m.id===mealId);
-    if(!meal.custom){return;} // only custom meals can be deleted
-    customConfirm("Remover este período personalizado do plano?", "🗑️", "Remover").then(ok => { if(!ok) return; plan.meals=plan.meals.filter(m=>m.id!==mealId); saveState(); renderDietPlanContent(); }); return;
-    plan.meals=plan.meals.filter(m=>m.id!==mealId); saveState(); renderDietPlanContent();
+    const meal=plan.meals.find(m=>String(m.id)===String(mealId));
+    if(!meal||!meal.custom) return;
+    customConfirm("Remover este período personalizado do plano?", "🗑️", "Remover").then(ok => {
+      if(!ok) return;
+      plan.meals=plan.meals.filter(m=>String(m.id)!==String(mealId));
+      saveState(); renderDietPlanContent();
+    });
   };
 
   window.deleteDietFood=function(mealId,foodId){
     const plan=findPlan(_activePlanId); if(!plan) return;
-    const meal=plan.meals.find(m=>m.id===mealId); if(!meal) return;
-    meal.foods=meal.foods.filter(f=>f.id!==foodId); saveState(); renderDietPlanContent();
+    const meal=plan.meals.find(m=>String(m.id)===String(mealId)); if(!meal) return;
+    meal.foods=meal.foods.filter(f=>String(f.id)!==String(foodId)); saveState(); renderDietPlanContent();
   };
 
   window.toggleDietCheck=function(mealId,foodId){
@@ -3268,11 +3271,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if(!appState.dietCheckins[checkKey]) appState.dietCheckins[checkKey]=[];
     const arr=appState.dietCheckins[checkKey];
     const plan=findPlan(_activePlanId);
-    const meal=plan?.meals.find(m=>m.id===mealId);
-    const food=meal?.foods.find(f=>f.id===foodId);
-    if(arr.includes(foodId)){
-      appState.dietCheckins[checkKey]=arr.filter(id=>id!==foodId);
-      appState.meals=appState.meals.filter(m=>!(m.dietFoodId===foodId&&m.date===today()));
+    const meal=plan?.meals.find(m=>String(m.id)===String(mealId));
+    const food=meal?.foods.find(f=>String(f.id)===String(foodId));
+    const fidStr=String(foodId);
+    if(arr.map(String).includes(fidStr)){
+      appState.dietCheckins[checkKey]=arr.filter(id=>String(id)!==fidStr);
+      appState.meals=appState.meals.filter(m=>!(String(m.dietFoodId)===fidStr&&m.date===today()));
     } else {
       arr.push(foodId);
       if(food) appState.meals.push({id:Date.now(),date:today(),dietFoodId:foodId,type:meal.name,name:food.name,qty:food.qtyLabel,unit:"",calories:food.calories,protein:food.protein,carbs:food.carbs,fat:food.fat,fiber:food.fiber||0,sodium:food.sodium||0,fromDiet:true});
@@ -3357,7 +3361,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("confirmFoodToPlan").onclick=()=>{
     if(!_planFoodSelected||!_editingMealId) return;
     const plan=findPlan(_activePlanId);
-    const meal=plan?.meals.find(m=>m.id===_editingMealId); if(!meal) return;
+    const meal=plan?.meals.find(m=>String(m.id)===String(_editingMealId)); if(!meal) return;
     let grams,qtyLabel;
     if(_planPortionMode==="unit"){const uqty=parseFloat(document.getElementById("planUnitQty").value)||1,uw=parseFloat(document.getElementById("planUnitWeight").value)||100;grams=uqty*uw;qtyLabel=`${uqty} un. (${Math.round(grams)}g)`;}
     else{const qty=parseFloat(document.getElementById("planPortionQty").value)||100,unit=document.getElementById("planPortionUnit").value;grams=calcGrams(qty,unit,100);qtyLabel=`${qty}${unit}`;}
