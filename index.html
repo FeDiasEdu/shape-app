@@ -1863,11 +1863,13 @@
   <div class="modal-content">
     <div class="modal-handle"></div>
     <h3 id="libraryModalTitle">Gerenciar Exercícios</h3>
-    <div style="display:flex; gap:8px; margin-bottom:12px;">
-      <input type="text" id="newLibraryItem" placeholder="Novo item..." style="margin-bottom:0; flex:1;" />
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <input type="text" id="newLibraryItem" placeholder="✏️ Novo item..." style="margin-bottom:0; flex:1;" autocomplete="off" />
       <button class="btn-primary" id="addLibraryItem" style="width:auto; padding:11px 16px;">+</button>
     </div>
-    <div id="libraryItemList" style="max-height:280px; overflow-y:auto;"></div>
+    <div id="libNewItemHint" style="display:none; background:rgba(0,255,136,0.06); border:1px solid rgba(0,255,136,0.15); border-radius:8px; padding:8px 10px; font-size:12px; color:var(--text-dim); margin-bottom:8px;"></div>
+    <input type="text" id="libSearchItem" placeholder="🔍 Filtrar lista..." style="margin-bottom:8px;" />
+    <div id="libraryItemList" style="max-height:240px; overflow-y:auto;"></div>
     <div class="modal-actions" style="margin-top:12px;">
       <button class="btn-ghost" id="closeLibraryModal">Fechar</button>
     </div>
@@ -2189,26 +2191,89 @@ document.addEventListener("DOMContentLoaded", function () {
   function openLibraryModal(mode) {
     libMode = mode;
     document.getElementById("libraryModalTitle").textContent = mode === "exercises" ? "🏋️ Exercícios" : "⚡ Técnicas";
+    document.getElementById("newLibraryItem").value = "";
+    document.getElementById("libSearchItem").value = "";
+    document.getElementById("libNewItemHint").style.display = "none";
     renderLibItems();
     libraryModal.classList.add("show");
   }
-  function renderLibItems() {
+  function renderLibItems(filter) {
     const el = document.getElementById("libraryItemList");
+    const q = (filter || document.getElementById("libSearchItem")?.value || "").toLowerCase();
     el.innerHTML = "";
-    appState.library[libMode].forEach((item, i) => {
+    const items = [...appState.library[libMode]].sort((a,b) => a.localeCompare(b, "pt"));
+    const filtered = q ? items.filter(item => item.toLowerCase().includes(q)) : items;
+    if (!filtered.length) {
+      el.innerHTML = `<div style="padding:12px; text-align:center; color:var(--text-dim); font-size:13px;">Nenhum item encontrado.</div>`;
+      return;
+    }
+    filtered.forEach(item => {
+      const realIdx = appState.library[libMode].indexOf(item);
       const d = document.createElement("div");
       d.className = "lib-item";
-      d.innerHTML = `<span>${item}</span><button class="btn-danger" onclick="removeLib(${i})">✕</button>`;
+      d.innerHTML = `<span>${item}</span><button class="btn-danger" data-lib-del="${realIdx}">✕</button>`;
       el.appendChild(d);
     });
+    el.querySelectorAll("[data-lib-del]").forEach(btn => {
+      btn.onclick = () => {
+        appState.library[libMode].splice(parseInt(btn.dataset.libDel), 1);
+        saveState(); renderLibItems();
+      };
+    });
   }
+
+  // Live search hint while typing new item
+  document.getElementById("newLibraryItem").addEventListener("input", function() {
+    const val = this.value.trim().toLowerCase();
+    const hint = document.getElementById("libNewItemHint");
+    if (!val) { hint.style.display = "none"; renderLibItems(""); return; }
+    const exists = appState.library[libMode].find(i => i.toLowerCase() === val);
+    const similar = appState.library[libMode].filter(i => i.toLowerCase().includes(val));
+    if (exists) {
+      hint.style.display = "block";
+      hint.innerHTML = `⚠️ <b style="color:var(--orange);">"${exists}"</b> já existe na biblioteca!`;
+    } else if (similar.length) {
+      hint.style.display = "block";
+      hint.innerHTML = `🔍 Similar já existente: ${similar.slice(0,3).map(s=>`<b style="color:var(--text);">${s}</b>`).join(", ")}`;
+    } else {
+      hint.style.display = "block";
+      hint.innerHTML = `✅ <span style="color:var(--green);">Novo item — pode adicionar!</span>`;
+    }
+    // Filter list in real time
+    renderLibItems(val);
+  });
+
+  // Filter existing list
+  document.getElementById("libSearchItem").addEventListener("input", function() {
+    renderLibItems(this.value);
+  });
+
   window.removeLib = function(i) { appState.library[libMode].splice(i,1); saveState(); renderLibItems(); };
+
   document.getElementById("addLibraryItem").onclick = () => {
     const inp = document.getElementById("newLibraryItem");
     const val = inp.value.trim(); if (!val) return;
-    appState.library[libMode].push(val); saveState(); renderLibItems(); inp.value = "";
+    const exists = appState.library[libMode].find(i => i.toLowerCase() === val.toLowerCase());
+    if (exists) { alert(`"${exists}" já existe na biblioteca!`); return; }
+    appState.library[libMode].push(val);
+    // Sort alphabetically after adding
+    appState.library[libMode].sort((a,b) => a.localeCompare(b, "pt"));
+    saveState(); renderLibItems();
+    inp.value = "";
+    document.getElementById("libNewItemHint").style.display = "none";
   };
-  document.getElementById("closeLibraryModal").onclick = () => libraryModal.classList.remove("show");
+
+  // Allow Enter key to add item
+  document.getElementById("newLibraryItem").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") document.getElementById("addLibraryItem").click();
+  });
+
+  document.getElementById("closeLibraryModal").onclick = () => {
+    libraryModal.classList.remove("show");
+    document.getElementById("newLibraryItem").value = "";
+    document.getElementById("libSearchItem").value = "";
+    document.getElementById("libNewItemHint").style.display = "none";
+  };
 
   // DAY SELECTOR & WEEK OVERVIEW
   const daySelector = document.getElementById("daySelector");
@@ -2422,6 +2487,13 @@ document.addEventListener("DOMContentLoaded", function () {
             <label>⏱ Descanso (segundos)</label>
             <input type="number" class="ex-rest-inline" value="${item.rest||""}" placeholder="Ex: 60" min="0" />
           </div>
+          <div style="margin-bottom:6px;">
+            <label>⚡ Técnica</label>
+            <div style="position:relative;">
+              <input type="text" class="ex-tech-inline" value="${item.technique||""}" placeholder="🔍 Pesquisar técnica..." autocomplete="off" style="margin-bottom:4px;" />
+              <div class="ex-tech-dropdown hidden" style="position:absolute;top:100%;left:0;right:0;background:#0d1e2b;border:1px solid var(--border);border-radius:10px;max-height:140px;overflow-y:auto;z-index:100;"></div>
+            </div>
+          </div>
           <div style="display:flex; gap:6px;">
             <button class="btn-ghost ex-cancel-edit" style="flex:1; padding:8px;">Cancelar</button>
             <button class="btn-primary ex-save-edit" data-idx="${idx}" style="flex:2; padding:8px;">💾 Salvar</button>
@@ -2454,17 +2526,38 @@ document.addEventListener("DOMContentLoaded", function () {
       const cancelBtn = d.querySelector(".ex-cancel-edit");
       if (cancelBtn) cancelBtn.onclick = () => document.getElementById(editId).classList.add("hidden");
       const saveBtn = d.querySelector(".ex-save-edit");
+      // Technique inline search dropdown
+      const techInlineInput = d.querySelector(".ex-tech-inline");
+      const techDropdown = d.querySelector(".ex-tech-dropdown");
+      if (techInlineInput) {
+        techInlineInput.addEventListener("input", function() {
+          const q = this.value.toLowerCase();
+          const matches = appState.library.techniques.filter(t => t.toLowerCase().includes(q));
+          if (!q || !matches.length) { techDropdown.classList.add("hidden"); return; }
+          techDropdown.innerHTML = matches.map(t =>
+            `<div style="padding:8px 12px;cursor:pointer;font-size:13px;color:var(--text);" data-tech="${t}">${t}</div>`
+          ).join("");
+          techDropdown.classList.remove("hidden");
+          techDropdown.querySelectorAll("[data-tech]").forEach(el => {
+            el.onclick = () => { techInlineInput.value = el.dataset.tech; techDropdown.classList.add("hidden"); };
+          });
+        });
+        techInlineInput.addEventListener("blur", () => setTimeout(() => techDropdown.classList.add("hidden"), 150));
+      }
+
       if (saveBtn) saveBtn.onclick = () => {
         const newWeights = [...d.querySelectorAll(".ex-weight-inline")].map(inp => parseFloat(inp.value)||null);
         const newRest = parseInt(d.querySelector(".ex-rest-inline").value) || null;
         const newSets = parseInt(d.querySelector(".ex-sets-inline").value) || null;
         const newReps = parseInt(d.querySelector(".ex-reps-inline").value) || null;
+        const newTech = d.querySelector(".ex-tech-inline")?.value.trim() || null;
         exNames.forEach((ex, si) => { if (newWeights[si]) setExWeight(ex, newWeights[si]); });
         appState.workouts[day][idx].weights = newWeights;
         appState.workouts[day][idx].weight = newWeights[0];
         appState.workouts[day][idx].rest = newRest;
         appState.workouts[day][idx].sets = newSets;
         appState.workouts[day][idx].reps = newReps;
+        appState.workouts[day][idx].technique = newTech;
         saveState(); renderExercises();
       };
 
